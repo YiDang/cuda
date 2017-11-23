@@ -2,16 +2,25 @@
 #include <stdlib.h>  
 #include <cuda_runtime.h>  
   
+#include <curand.h>
+#include <curand_kernel.h>
+
 #define ROWS 32  
 #define COLS 16  
+#define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 __global__ void Kerneltest(int **da, unsigned int rows, unsigned int cols)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
+    curandState_t state;
+    curand_init(0, /* the seed controls the sequence of random values that are produced */
+              0, /* the sequence number is only important with multiple cores */
+              0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
+              &state);
     if (row < rows && col < cols)  
     {  
-        da[row][col] = row*cols + col;  
+        da[row][col] = curand(&state) % MAX;;  
     }  
 }  
   
@@ -44,19 +53,15 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < COLS; c++)  
         {  
-            printf("%4d ", hc[r*COLS+c]);  
-            if (hc[r*COLS+c] != (r*COLS+c))  
-            {  
-                is_right = false;  
-            }  
+            printf("%4d ", hc[r*COLS+c]);   
         }  
         printf("\n");  
     }  
-    printf("the result is %s!\n", is_right? "right":"false");  
+
     cudaFree((void*)da);  
     cudaFree((void*)dc);  
     free(ha);  
     free(hc);  
-    getchar();  
+
     return 0;  
 }  
