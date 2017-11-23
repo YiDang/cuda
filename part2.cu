@@ -5,9 +5,9 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
-#define M_ 32  
-#define N_ 16 
-#define P_ 16 
+#define M_ 2  
+#define N_ 4 
+#define P_ 3 
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -28,42 +28,42 @@ __global__ void InitMatrix(int **da, unsigned int rows, unsigned int cols, int s
   
 int main(int argc, char **argv)  
 {  
-    int **da = NULL;  
-    int **ha = NULL;  
-    int *dc = NULL;  
-    int *hc = NULL;  
+    int **device_m = NULL;  
+    int **host_m = NULL;  
+    int *device_a = NULL;  
+    int *host_a = NULL;  
     cudaError_t res;  
     int r, c;  
     bool is_right=true;  
   
-    res = cudaMalloc((void**)(&da), M_*sizeof(int*));CHECK(res)  
-    res = cudaMalloc((void**)(&dc), M_*N_*sizeof(int));CHECK(res)  
-    ha = (int**)malloc(M_*sizeof(int*));  
-    hc = (int*)malloc(M_*N_*sizeof(int));  
+    res = cudaMalloc((void**)(&device_m), M_*sizeof(int*));CHECK(res)  
+    res = cudaMalloc((void**)(&device_a), M_*N_*sizeof(int));CHECK(res)  
+    host_m = (int**)malloc(M_*sizeof(int*));  
+    host_a = (int*)malloc(M_*N_*sizeof(int));  
   
     for (r = 0; r < M_; r++)  
     {  
-        ha[r] = dc + r*N_;  
+        host_m[r] = device_a + r*N_;  
     }  
-    res = cudaMemcpy((void*)(da), (void*)(ha), M_*sizeof(int*), cudaMemcpyHostToDevice);CHECK(res)  
+    res = cudaMemcpy((void*)(device_m), (void*)(host_m), M_*sizeof(int*), cudaMemcpyHostToDevice);CHECK(res)  
     dim3 dimBlock(16,16);  
     dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));  
-    InitMatrix<<<dimGrid, dimBlock>>>(da, M_, N_, 1);  
-    res = cudaMemcpy((void*)(hc), (void*)(dc), M_*N_*sizeof(int), cudaMemcpyDeviceToHost);CHECK(res)  
+    InitMatrix<<<dimGrid, dimBlock>>>(device_m, M_, N_, 1);  
+    res = cudaMemcpy((void*)(host_a), (void*)(device_a), M_*N_*sizeof(int), cudaMemcpyDeviceToHost);CHECK(res)  
   
     for (r = 0; r < M_; r++)  
     {  
         for (c = 0; c < N_; c++)  
         {  
-            printf("%4d ", hc[r*N_+c]);   
+            printf("%4d ", host_a[r*N_+c]);   
         }  
         printf("\n");  
     }  
 
-    cudaFree((void*)da);  
-    cudaFree((void*)dc);  
-    free(ha);  
-    free(hc);  
+    cudaFree((void*)device_m);  
+    cudaFree((void*)device_a);  
+    free(host_m);  
+    free(host_a);  
 
     return 0;  
 }  
