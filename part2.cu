@@ -14,7 +14,7 @@ void hello(char *a, int *b)
  
 int main()
 {
-	float[DIMX][DIMY];
-	printf("%d\n", float[1][1]);
+	float m[DIMX][DIMY];
+	printf("%d\n", m[1][1]);
 	return EXIT_SUCCESS;
 }
