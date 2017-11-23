@@ -14,7 +14,7 @@ __global__ void Kerneltest(int **da, unsigned int rows, unsigned int cols)
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
     curandState_t state;
-    curand_init(0, /* the seed controls the sequence of random values that are produced */
+    curand_init(row*cols + col, /* the seed controls the sequence of random values that are produced */
               0, /* the sequence number is only important with multiple cores */
               0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
               &state);
