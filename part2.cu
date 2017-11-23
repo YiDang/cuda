@@ -14,6 +14,7 @@ void hello(char *a, int *b)
  
 int main()
 {
+	int r, c;
 	int **arr = (int**)malloc(ROWS*sizeof(int*));  
 	int *data = (int*)malloc(COLS*ROWS*sizeof(int));  
 	for (r = 0; r < ROWS; r++)  
