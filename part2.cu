@@ -1,7 +1,7 @@
 #include <stdio.h>  
 #include <stdlib.h>  
 #include <cuda_runtime.h>  
-  
+#include <unistd.h>
 #include <curand.h>
 #include <curand_kernel.h>
 
