@@ -32,9 +32,10 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
  	
- 	mC[row][col] = 0;
+ 	
  	if (row < m && col < p)  
     { 
+    	mC[row][col] = 0;
 	    for(int i = 0; i < n; i++){
 	    	mC[row][col] += mA[row][i] * mB[i][col];
 	    	//mC[row][col] += 1;
