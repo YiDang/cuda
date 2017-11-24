@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < N_; c++)  
         {  
-            printf("%4d ", host_array_A[r*N_+c]);   
+            printf("%.6f ", host_array_A[r*N_+c]);   
         }  
         printf("\n");  
     } 
