@@ -154,6 +154,7 @@ void sequential()
 int main(int argc, char **argv)  
 {  
 	cuda();
+
 	sequential();
     return 0;  
 }  
