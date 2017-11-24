@@ -22,34 +22,34 @@ __global__ void InitMatrix(int **da, unsigned int rows, unsigned int cols, int s
               &state);
     if (row < rows && col < cols)  
     {  
-        da[row][col] = curand(&state) % MAX;;  
+        da[row][col] = curand_uniform(&state);;  
     }  
 }  
   
 int main(int argc, char **argv)  
 {  
-    int **device_matrix_A = NULL;  
-    int **host_matrix_A = NULL;  
-    int *device_array_A = NULL;  
-    int *host_array_A = NULL;  
+    float **device_matrix_A = NULL;  
+    float **host_matrix_A = NULL;  
+    float *device_array_A = NULL;  
+    float *host_array_A = NULL;  
     cudaError_t res;  
     int r, c;  
     bool is_right=true;  
   
-    res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(int*));CHECK(res)  
-    res = cudaMalloc((void**)(&device_array_A), M_*N_*sizeof(int));CHECK(res)  
-    host_matrix_A = (int**)malloc(M_*sizeof(int*));  
-    host_array_A = (int*)malloc(M_*N_*sizeof(int));  
+    res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(float*));CHECK(res)  
+    res = cudaMalloc((void**)(&device_array_A), M_*N_*sizeof(float));CHECK(res)  
+    host_matrix_A = (float**)malloc(M_*sizeof(float*));  
+    host_array_A = (float*)malloc(M_*N_*sizeof(float));  
   
     for (r = 0; r < M_; r++)  
     {  
         host_matrix_A[r] = device_array_A + r*N_;  
     }  
-    res = cudaMemcpy((void*)(device_matrix_A), (void*)(host_matrix_A), M_*sizeof(int*), cudaMemcpyHostToDevice);CHECK(res)  
+    res = cudaMemcpy((void*)(device_matrix_A), (void*)(host_matrix_A), M_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res)  
     dim3 dimBlock(16,16);  
     dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));  
     InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_A, M_, N_, 1);  
-    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_*N_*sizeof(int), cudaMemcpyDeviceToHost);CHECK(res)  
+    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_*N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
   
     for (r = 0; r < M_; r++)  
     {  
@@ -61,24 +61,24 @@ int main(int argc, char **argv)
     } 
 
 
-    int **device_matrix_B = NULL;  
-    int **host_matrix_B = NULL;  
-    int *device_array_B = NULL;  
-    int *host_array_B = NULL;  
+    float **device_matrix_B = NULL;  
+    float **host_matrix_B = NULL;  
+    float *device_array_B = NULL;  
+    float *host_array_B = NULL;  
     is_right=true;  
   
-    res = cudaMalloc((void**)(&device_matrix_B), N_*sizeof(int*));CHECK(res)  
-    res = cudaMalloc((void**)(&device_array_B), N_*P_*sizeof(int));CHECK(res)  
-    host_matrix_B = (int**)malloc(N_*sizeof(int*));  
-    host_array_B = (int*)malloc(N_*P_*sizeof(int));  
+    res = cudaMalloc((void**)(&device_matrix_B), N_*sizeof(float*));CHECK(res)  
+    res = cudaMalloc((void**)(&device_array_B), N_*P_*sizeof(float));CHECK(res)  
+    host_matrix_B = (float**)malloc(N_*sizeof(float*));  
+    host_array_B = (float*)malloc(N_*P_*sizeof(float));  
   
     for (r = 0; r < N_; r++)  
     {  
         host_matrix_B[r] = device_array_B + r*P_;  
     }  
-    res = cudaMemcpy((void*)(device_matrix_B), (void*)(host_matrix_B), N_*sizeof(int*), cudaMemcpyHostToDevice);CHECK(res)   
+    res = cudaMemcpy((void*)(device_matrix_B), (void*)(host_matrix_B), N_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res)   
     InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_B, N_, P_, 2);  
-    res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_*P_*sizeof(int), cudaMemcpyDeviceToHost);CHECK(res)  
+    res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
   
     for (r = 0; r < N_; r++)  
     {  
