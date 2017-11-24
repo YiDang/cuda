@@ -27,14 +27,17 @@ __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int 
     }  
 }  
 
-__global__ void Multiply(float **mA, float **mB, float **mC, unsigned int n)  
+__global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, unsigned int n, unsigned int p)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
  
-    for(int i = 0; i < n; i++){
-    	//mC[row][col] += mA[row][i] * mB[i][col];
-    	mC[row][col] += 1;
+ 	if (row < m && col < p)  
+    { 
+	    for(int i = 0; i < n; i++){
+	    	//mC[row][col] += mA[row][i] * mB[i][col];
+	    	mC[row][col] += 1;
+	    }
     }
 }
   
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
     } 
 
     res = cudaMemcpy((void*)(device_matrix_C), (void*)(host_matrix_C), M_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res) 
-    Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, N_);  
+    Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);  
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
   
     for (r = 0; r < M_; r++)  
