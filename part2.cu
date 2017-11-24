@@ -11,18 +11,18 @@
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
-__global__ void InitMatrix(float **da, unsigned int rows, unsigned int cols, int seed)  
+__global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
     curandState_t state;
-    curand_init((row*cols + col) * seed, /* the seed controls the sequence of random values that are produced */
-              0, /* the sequence number is only important with multiple cores */
+    curand_init(clock64(), /* the seed controls the sequence of random values that are produced */
+              row, /* the sequence number is only important with multiple cores */
               0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
               &state);
     if (row < rows && col < cols)  
     {  
-        da[row][col] = curand_uniform(&state);;  
+        m[row][col] = curand_uniform(&state);;  
     }  
 }  
   
