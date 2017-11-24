@@ -16,7 +16,7 @@ __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int 
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
     curandState_t state;
-    curand_init(clock64(), /* the seed controls the sequence of random values that are produced */
+    curand_init((row*cols + col) * seed, /* the seed controls the sequence of random values that are produced */
               row, /* the sequence number is only important with multiple cores */
               0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
               &state);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < P_; c++)  
         {  
-            printf("%4d ", host_array_B[r*P_+c]);   
+            printf("%.6f ", host_array_B[r*P_+c]);   
         }  
         printf("\n");  
     }  
