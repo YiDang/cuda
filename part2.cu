@@ -11,7 +11,7 @@
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
-__global__ void InitMatrix(int **da, unsigned int rows, unsigned int cols, int seed)  
+__global__ void InitMatrix(float **da, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
