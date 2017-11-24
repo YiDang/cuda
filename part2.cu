@@ -22,8 +22,8 @@ __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int 
               &state);
     if (row < rows && col < cols)  
     {  
-        m[row][col] = curand_uniform(&state);
-        //m[row][col] = 1;
+        //m[row][col] = curand_uniform(&state);
+        m[row][col] = 1;
     }  
 }  
 
@@ -66,16 +66,6 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));  
     InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_A, M_, N_, 1);  
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_*N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-  
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < N_; c++)  
-        {  
-            printf("%.6f ", host_array_A[r*N_+c]);   
-        }  
-        printf("\n");  
-    } 
-
 
     float **device_matrix_B = NULL;  
     float **host_matrix_B = NULL;  
@@ -95,16 +85,6 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     res = cudaMemcpy((void*)(device_matrix_B), (void*)(host_matrix_B), N_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res)   
     InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_B, N_, P_, 2);  
     res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-  
-    for (r = 0; r < N_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_B[r*P_+c]);   
-        }  
-        printf("\n");  
-    }  
-
 
     float **device_matrix_C = NULL;  
     float **host_matrix_C = NULL;  
@@ -125,15 +105,6 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);  
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
   
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C[r*P_+c]);   
-        }  
-        printf("\n");  
-    }  
-
     cudaFree((void*)device_matrix_A);  
     cudaFree((void*)device_array_A);  
     cudaFree((void*)device_matrix_B);  
