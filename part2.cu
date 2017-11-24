@@ -122,11 +122,11 @@ int main(int argc, char **argv)
     Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);  
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
   
-    for (r = 0; r < N_; r++)  
+    for (r = 0; r < M_; r++)  
     {  
         for (c = 0; c < P_; c++)  
         {  
-            printf("%.6f ", host_array_B[r*P_+c]);   
+            printf("%.6f ", host_array_C[r*P_+c]);   
         }  
         printf("\n");  
     }  
