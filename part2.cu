@@ -40,10 +40,10 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
 	    }
     }
 }
-  
-int main(int argc, char **argv)  
-{  
-    float **device_matrix_A = NULL;  
+
+void cuda()
+{
+	    float **device_matrix_A = NULL;  
     float **host_matrix_A = NULL;  
     float *device_array_A = NULL;  
     float *host_array_A = NULL;  
@@ -145,6 +145,15 @@ int main(int argc, char **argv)
     free(host_array_B); 
     free(host_matrix_C);  
     free(host_array_C); 
+}  
 
+void sequential()
+{
+	
+}
+int main(int argc, char **argv)  
+{  
+	void cuda();
+	sequential();
     return 0;  
 }  
