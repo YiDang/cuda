@@ -22,8 +22,8 @@ __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int 
               &state);
     if (row < rows && col < cols)  
     {  
-        //m[row][col] = curand_uniform(&state);
-        m[row][col] = 1;
+        m[row][col] = curand_uniform(&state);
+        //m[row][col] = 1;
     }  
 }  
 
@@ -38,14 +38,13 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
     	mC[row][col] = 0;
 	    for(int i = 0; i < n; i++){
 	    	mC[row][col] += mA[row][i] * mB[i][col];
-	    	//mC[row][col] += 1;
 	    }
     }
 }
 
 void cuda()
 {
-	    float **device_matrix_A = NULL;  
+	float **device_matrix_A = NULL;  
     float **host_matrix_A = NULL;  
     float *device_array_A = NULL;  
     float *host_array_A = NULL;  
@@ -149,14 +148,53 @@ void cuda()
     free(host_array_C); 
 }  
 
+void initArray(float *array, int len)
+{
+	for(int i = 0; i < len; i++){
+
+	}
+}
 void sequential()
 {
-	
+	float **matrix_A = (float**)malloc(M_*sizeof(float*)); 
+	float *array_A = (float*)malloc(M_*N_*sizeof(float));
+	for (int r = 0; r < M_; r++)  
+    {  
+        matrix_A[r] = array_A + r*N_;  
+    }
+
+    float **matrix_B = (float**)malloc(N_*sizeof(float*)); 
+	float *array_B = (float*)malloc(P_*N_*sizeof(float));
+	for (int r = 0; r < N_; r++)  
+    {  
+        matrix_B[r] = array_B + r*P_;  
+    }
+
+    float **matrix_C = (float**)malloc(M_*sizeof(float*)); 
+	float *array_C = (float*)malloc(M_*P_*sizeof(float));
+	for (int r = 0; r < M_; r++)  
+    {  
+        matrix_C[r] = array_C + r*P_;  
+    }
+}
+
+void test(float &*a)
+{
+	for(int i = 0; i < 5; i++)
+	{
+		a[i] = i;
+	}
 }
 int main(int argc, char **argv)  
 {  
-	cuda();
+	//cuda();
+	//sequential();
 
-	sequential();
+	float *a = (float*)malloc(5*sizeof(float));
+	test(a);
+	for(int i = 0; i < 5; i++)
+	{
+		printf("%d",a[i]);
+	}
     return 0;  
 }  
