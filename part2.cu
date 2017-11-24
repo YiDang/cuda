@@ -42,19 +42,19 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
     }
 }
 
-void cuda()
+void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
 {
 	float **device_matrix_A = NULL;  
     float **host_matrix_A = NULL;  
     float *device_array_A = NULL;  
-    float *host_array_A = NULL;  
+    //float *host_array_A = NULL;  
     cudaError_t res;  
     int r, c;    
   
     res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(float*));CHECK(res)  
     res = cudaMalloc((void**)(&device_array_A), M_*N_*sizeof(float));CHECK(res)  
     host_matrix_A = (float**)malloc(M_*sizeof(float*));  
-    host_array_A = (float*)malloc(M_*N_*sizeof(float));  
+    //host_array_A = (float*)malloc(M_*N_*sizeof(float));  
   
     for (r = 0; r < M_; r++)  
     {  
@@ -80,12 +80,12 @@ void cuda()
     float **device_matrix_B = NULL;  
     float **host_matrix_B = NULL;  
     float *device_array_B = NULL;  
-    float *host_array_B = NULL;  
+    //float *host_array_B = NULL;  
   
     res = cudaMalloc((void**)(&device_matrix_B), N_*sizeof(float*));CHECK(res)  
     res = cudaMalloc((void**)(&device_array_B), N_*P_*sizeof(float));CHECK(res)  
     host_matrix_B = (float**)malloc(N_*sizeof(float*));  
-    host_array_B = (float*)malloc(N_*P_*sizeof(float));  
+    //host_array_B = (float*)malloc(N_*P_*sizeof(float));  
   
     for (r = 0; r < N_; r++)  
     {  
@@ -109,12 +109,12 @@ void cuda()
     float **device_matrix_C = NULL;  
     float **host_matrix_C = NULL;  
     float *device_array_C = NULL;  
-    float *host_array_C = NULL;  
+    //float *host_array_C = NULL;  
 
     res = cudaMalloc((void**)(&device_matrix_C), M_*sizeof(float*));CHECK(res)  
     res = cudaMalloc((void**)(&device_array_C), M_*P_*sizeof(float));CHECK(res)  
     host_matrix_C = (float**)malloc(M_*sizeof(float*));  
-    host_array_C = (float*)malloc(M_*P_*sizeof(float));  
+    //host_array_C = (float*)malloc(M_*P_*sizeof(float));  
 
     for (r = 0; r < M_; r++)  
     {  
@@ -141,11 +141,11 @@ void cuda()
     cudaFree((void*)device_matrix_C);  
     cudaFree((void*)device_array_C); 
     free(host_matrix_A);  
-    free(host_array_A);  
+    //free(host_array_A);  
     free(host_matrix_B);  
-    free(host_array_B); 
+   	//free(host_array_B); 
     free(host_matrix_C);  
-    free(host_array_C); 
+    //free(host_array_C); 
 }  
 
 void initArray(float *array, int len)
@@ -178,23 +178,41 @@ void sequential()
     }
 }
 
-void test(float &*a)
-{
-	for(int i = 0; i < 5; i++)
-	{
-		a[i] = i;
-	}
-}
 int main(int argc, char **argv)  
 {  
-	//cuda();
-	//sequential();
+	int r, c;
+	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
+	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
+	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
+	cuda(host_array_A, host_array_B, host_array_C);
+	for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < N_; c++)  
+        {  
+            printf("%.6f ", host_array_C[r*N_+c]);   
+        }  
+        printf("\n");  
+    }
+    for (r = 0; r < N_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+	sequential();
+	free(host_array_A); 
+	free(host_array_B); 
+	free(host_array_C); 
 
-	float *a = (float*)malloc(5*sizeof(float));
-	test(a);
-	for(int i = 0; i < 5; i++)
-	{
-		printf("%d",a[i]);
-	}
     return 0;  
 }  
