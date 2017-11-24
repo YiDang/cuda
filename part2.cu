@@ -127,26 +127,6 @@ void initArray(float *array, int len)
 }
 void sequential()
 {
-	float **matrix_A = (float**)malloc(M_*sizeof(float*)); 
-	float *array_A = (float*)malloc(M_*N_*sizeof(float));
-	for (int r = 0; r < M_; r++)  
-    {  
-        matrix_A[r] = array_A + r*N_;  
-    }
-
-    float **matrix_B = (float**)malloc(N_*sizeof(float*)); 
-	float *array_B = (float*)malloc(P_*N_*sizeof(float));
-	for (int r = 0; r < N_; r++)  
-    {  
-        matrix_B[r] = array_B + r*P_;  
-    }
-
-    float **matrix_C = (float**)malloc(M_*sizeof(float*)); 
-	float *array_C = (float*)malloc(M_*P_*sizeof(float));
-	for (int r = 0; r < M_; r++)  
-    {  
-        matrix_C[r] = array_C + r*P_;  
-    }
 }
 
 int main(int argc, char **argv)  
@@ -160,18 +140,20 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < N_; c++)  
         {  
-            printf("%.6f ", host_array_C[r*N_+c]);   
+            printf("%.6f ", host_array_A[r*N_+c]);   
         }  
         printf("\n");  
     }
+    printf("\n");
     for (r = 0; r < N_; r++)  
     {  
         for (c = 0; c < P_; c++)  
         {  
-            printf("%.6f ", host_array_C[r*P_+c]);   
+            printf("%.6f ", host_array_B[r*P_+c]);   
         }  
         printf("\n");  
     }
+    printf("\n");
     for (r = 0; r < M_; r++)  
     {  
         for (c = 0; c < P_; c++)  
@@ -180,6 +162,7 @@ int main(int argc, char **argv)
         }  
         printf("\n");  
     }
+    printf("\n");
 	sequential();
 	free(host_array_A); 
 	free(host_array_B); 
