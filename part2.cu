@@ -125,8 +125,18 @@ void initArray(float *array, int len)
 
 	}
 }
-void sequential()
+void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
+	for(int i = 0; i < M_; i++)
+	{
+		for(int j = 0; j < P_; j++)
+		{
+			for(int k = 0; k < N_; k++)
+			{
+				host_array_C[i * M_ + j] = host_array_A[i * M_ + k] * host_array_A[k * N_ + j];
+			}
+		}
+	}
 }
 
 int main(int argc, char **argv)  
@@ -134,8 +144,9 @@ int main(int argc, char **argv)
 	int r, c;
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
-	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
-	cuda(host_array_A, host_array_B, host_array_C);
+	float *host_array_C_para = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
+	cuda(host_array_A, host_array_B, host_array_C_para);
 	for (r = 0; r < M_; r++)  
     {  
         for (c = 0; c < N_; c++)  
@@ -158,15 +169,28 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < P_; c++)  
         {  
-            printf("%.6f ", host_array_C[r*P_+c]);   
+            printf("%.6f ", host_array_C_para[r*P_+c]);   
         }  
         printf("\n");  
     }
     printf("\n");
-	sequential();
+
+	sequential(host_array_A, host_array_B, host_array_C_seq);
+
+	for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C_para[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    printf("\n");
+
 	free(host_array_A); 
 	free(host_array_B); 
-	free(host_array_C); 
+	free(host_array_C_para); 
+	free(host_array_C_seq); 
 
     return 0;  
 }  
