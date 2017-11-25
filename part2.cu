@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <curand.h>
 #include <curand_kernel.h>
-
+#include <cublas_v2.h>
 #define M_ 2  
 #define N_ 4 
 #define P_ 3 
@@ -139,6 +139,24 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 }
 
+void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+{
+	int lda = M_, ldb = N_, ldc = M_;
+    const float alf = 1;
+    const float bet = 0;
+    const float *alpha = &alf;
+    const float *beta = &bet;
+ 
+    // Create a handle for CUBLAS
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+ 
+    // Do the actual multiplication
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+
+    // Destroy the handle
+    cublasDestroy(handle);
+}
 int main(int argc, char **argv)  
 {  
 	int r, c;
@@ -146,6 +164,7 @@ int main(int argc, char **argv)
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
 	float *host_array_C_para = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 	cuda(host_array_A, host_array_B, host_array_C_para);
 	for (r = 0; r < M_; r++)  
     {  
@@ -187,10 +206,21 @@ int main(int argc, char **argv)
     }
     printf("\n");
 
+    cublas(host_array_A, host_array_B, host_array_C_cublas);
+
+    for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C_cublas[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    printf("\n");
 	free(host_array_A); 
 	free(host_array_B); 
 	free(host_array_C_para); 
 	free(host_array_C_seq); 
-
+	free(host_array_C_cublas); 
     return 0;  
 }  
