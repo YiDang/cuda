@@ -142,7 +142,7 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 }
 
-void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+void cublas(float *device_array_A, float *device_array_B, float *host_array_C)
 {
  	printf("start\n");
 
@@ -153,7 +153,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 	for(int i = 0; i < P_ * N_; i++)
 	{
-		std::cout  << " ";
+		std::cout<<device_array_A[i]<< " ";
 	}
     // Do the actual multiplication
 
