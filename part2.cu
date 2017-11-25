@@ -130,10 +130,11 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
-		{
+		{	
+			host_array_C[i * M_ + j] = 0;
 			for(int k = 0; k < N_; k++)
 			{
-				host_array_C[i * M_ + j] = host_array_A[i * M_ + k] * host_array_A[k * N_ + j];
+				host_array_C[i * M_ + j] += host_array_A[i * M_ + k] * host_array_A[k * N_ + j];
 			}
 		}
 	}
@@ -152,7 +153,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     cublasCreate(&handle);
 
  	printf("start\n");
- 	
+
     // Do the actual multiplication
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, N_, P_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
 
