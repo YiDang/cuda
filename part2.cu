@@ -6,6 +6,7 @@
 #include <curand_kernel.h>
 #include <cublas_v2.h>
 #include <iostream>
+#include <thrust/device_vector.h>
 #define M_ 2  
 #define N_ 2 
 #define P_ 2 
@@ -151,6 +152,14 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
  	printf("start\n");
  	show(host_array_A, M_, N_);
 	show(host_array_B, N_, P_);
+
+	thrust::device_vector<float> D(M_ * N_);
+	for(int i = 0; i < M_ * N_; i++)
+	{
+		D[i] = host_array_A[i];
+		std::cout << D[i] << " ";
+	}
+
     // Do the actual multiplication
 
     int lda=N_ ,ldb=P_, ldc=P_;
