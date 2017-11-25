@@ -183,8 +183,6 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     // Destroy the handle
     cublasDestroy(handle);
 
-    show(host_array_C, M_, P_);
-
 }
 int main(int argc, char **argv)  
 {  
