@@ -149,39 +149,13 @@ void cublas(float *device_array_A, float *device_array_B, float *host_array_C)
 
 	for(int i = 0; i < M_ * N_; i++)
 	{
-		std::cout  << " ";
+		std::cout  <<device_array_A[i]<< " ";
 	}
 	for(int i = 0; i < P_ * N_; i++)
 	{
-		std::cout<<device_array_A[i]<< " ";
+		std::cout  << " ";
 	}
-    // Do the actual multiplication
 
-    int lda=N_ ,ldb=P_, ldc=P_;
-	const float alpha = 1.0f;
-	const float beta = 0.0f;
- 
-    // Create a handle for CUBLAS
-    cublasHandle_t handle;
-	cublasStatus_t status = cublasCreate(&handle);
-	if (status != CUBLAS_STATUS_SUCCESS) {
-    	std::cerr << "!!!! CUBLAS initialization error\n";
-  	}
-
-    // Do the actual multiplication
-    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
-    						P_, M_, N_, 
-    						&alpha, 
-    						host_array_B, ldb, 
-    						host_array_A, lda, 
-    						&beta, 
-    						host_array_C, ldc);
- 	if (status != CUBLAS_STATUS_SUCCESS) {
-    	std::cerr << "!!!! kernel execution error.\n";
-  	}
-
-    // Destroy the handle
-    cublasDestroy(handle);
 
 }
 int main(int argc, char **argv)  
