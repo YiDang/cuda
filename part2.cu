@@ -148,10 +148,10 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const int k, const int n) {
    	int lda=m,ldb=k,ldc=m;
-    const float alf = 1;
+	const float alf = 1;
 	const float bet = 0;
-    const float *alpha = &alf;
-    const float *beta = &bet;
+	const float *alpha = &alf;
+	const float *beta = &bet;
  
     // Create a handle for CUBLAS
     cublasHandle_t handle;
@@ -165,6 +165,7 @@ void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const 
  	if (status != CUBLAS_STATUS_SUCCESS) {
     	std::cerr << "!!!! kernel execution error.\n";
   	}
+  	std::out << "!!!! kernel execution error.\n";
     // Destroy the handle
     cublasDestroy(handle);
 }
