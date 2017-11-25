@@ -45,7 +45,14 @@ int main(void)
     }
     std::cout << "\n";
   }
-
+    std::cout << "\n";
+  for (size_t i = 0; i < rowE * colE; i++){
+    
+      std::cout << E[i] << " ";
+    
+    std::cout << ",";
+  }
+    std::cout << "\n";
   for (size_t i = 0; i < rowF; i++)
     for (size_t j = 0; j < colF; j++)
       F[ci(i,j,colF)]=0;
