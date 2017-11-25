@@ -154,10 +154,8 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     // Do the actual multiplication
 
     int lda=N_ ,ldb=P_, ldc=P_;
-	const float alf = 1.0f;
-	const float bet = 0.0f;
-	const float *alpha = &alf;
-	const float *beta = &bet;
+	const float alpha = 1.0f;
+	const float beta = 0.0f;
  
     // Create a handle for CUBLAS
     cublasHandle_t handle;
@@ -169,10 +167,10 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     // Do the actual multiplication
     status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
     						P_, M_, N_, 
-    						alpha, 
+    						&alpha, 
     						host_array_B, ldb, 
     						host_array_A, lda, 
-    						beta, 
+    						&beta, 
     						host_array_C, ldc);
  	if (status != CUBLAS_STATUS_SUCCESS) {
     	std::cerr << "!!!! kernel execution error.\n";
