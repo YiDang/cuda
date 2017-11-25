@@ -5,6 +5,7 @@
 #include <curand.h>
 #include <curand_kernel.h>
 #include <cublas_v2.h>
+#include <iostream>
 #define M_ 2  
 #define N_ 2 
 #define P_ 2 
@@ -154,11 +155,16 @@ void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const 
  
     // Create a handle for CUBLAS
     cublasHandle_t handle;
-	cublasCreate(&handle);
+	cublasStatus_t status = cublasCreate(&handle);
+	if (status != CUBLAS_STATUS_SUCCESS) {
+    	std::cerr << "!!!! CUBLAS initialization error\n";
+  	}
 
     // Do the actual multiplication
-    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
- 
+    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+ 	if (status != CUBLAS_STATUS_SUCCESS) {
+    	std::cerr << "!!!! kernel execution error.\n";
+  	}
     // Destroy the handle
     cublasDestroy(handle);
 }
