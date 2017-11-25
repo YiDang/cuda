@@ -12,7 +12,7 @@
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
-#define show(matrix, lenm, lenn) for (r = 0; r < lenm; r++){for (c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
+#define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
 {  
@@ -52,14 +52,14 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     float *device_array_A = NULL;  
     //float *host_array_A = NULL;  
     cudaError_t res;  
-    int r, c;    
+  
   
     res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(float*));CHECK(res)  
     res = cudaMalloc((void**)(&device_array_A), M_*N_*sizeof(float));CHECK(res)  
     host_matrix_A = (float**)malloc(M_*sizeof(float*));  
     //host_array_A = (float*)malloc(M_*N_*sizeof(float));  
   
-    for (r = 0; r < M_; r++)  
+    for (int r = 0; r < M_; r++)  
     {  
         host_matrix_A[r] = device_array_A + r*N_;  
     }  
@@ -80,7 +80,7 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     host_matrix_B = (float**)malloc(N_*sizeof(float*));  
     //host_array_B = (float*)malloc(N_*P_*sizeof(float));  
   
-    for (r = 0; r < N_; r++)  
+    for (int r = 0; r < N_; r++)  
     {  
         host_matrix_B[r] = device_array_B + r*P_;  
     }  
@@ -99,7 +99,7 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     host_matrix_C = (float**)malloc(M_*sizeof(float*));  
     //host_array_C = (float*)malloc(M_*P_*sizeof(float));  
 
-    for (r = 0; r < M_; r++)  
+    for (int r = 0; r < M_; r++)  
     {  
         host_matrix_C[r] = device_array_C + r*P_;  
     } 
@@ -130,6 +130,8 @@ void initArray(float *array, int len)
 }
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
+	show(host_array_A, M_, N_);
+	show(host_array_B, N_, P_);
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -167,7 +169,6 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 }
 int main(int argc, char **argv)  
 {  
-	int r, c;
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
 	float *host_array_C_para = (float*)malloc(M_*P_*sizeof(float));
@@ -185,7 +186,7 @@ int main(int argc, char **argv)
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
-    show(host_array_C_cublas, M_, P_);
+    //show(host_array_C_cublas, M_, P_);
     
 	free(host_array_A); 
 	free(host_array_B); 
