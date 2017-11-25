@@ -12,16 +12,8 @@
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
-#define show(matrix, lenm, lenn)
-		for (r = 0; r < lenm; r++)  
-    	{  
-        	for (c = 0; c < lenn; c++)  
-        	{  
-            		printf("%.6f ", matrix[r*lenn+c]);   
-        	}  
-        printf("\n");  
-    	}
-    printf("\n");
+#define show(matrix, lenm, lenn) for (r = 0; r < lenm; r++){for (c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
+
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
