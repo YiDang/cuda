@@ -165,7 +165,7 @@ void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const 
  	if (status != CUBLAS_STATUS_SUCCESS) {
     	std::cerr << "!!!! kernel execution error.\n";
   	}
-  	std::out << "!!!! kernel execution error.\n";
+  	std::cerr << "!!!! kernel execution error.\n";
     // Destroy the handle
     cublasDestroy(handle);
 }
