@@ -6,7 +6,7 @@
 #include <curand_kernel.h>
 #include <cublas_v2.h>
 #define M_ 2  
-#define N_ 3 
+#define N_ 2 
 #define P_ 2 
 
 #define MAX 100
@@ -145,27 +145,36 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 }
 
-void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
-{
-	int lda = M_, ldb = N_, ldc = M_;
+void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const int k, const int n) {
+   	int lda=m,ldb=k,ldc=m;
     const float alf = 1;
-    const float bet = 0;
+	const float bet = 0;
     const float *alpha = &alf;
     const float *beta = &bet;
  
     // Create a handle for CUBLAS
     cublasHandle_t handle;
-    cublasCreate(&handle);
+	cublasCreate(&handle);
 
+    // Do the actual multiplication
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+ 
+    // Destroy the handle
+    cublasDestroy(handle);
+}
+
+
+void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+{
  	printf("start\n");
  	show(host_array_A, M_, N_);
 	show(host_array_B, N_, P_);
     // Do the actual multiplication
-    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, P_, N_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
+
+    gpu_blas_mmul(host_array_A, host_array_B, host_array_C, const int M_, const int N_, const int P_);
 
     show(host_array_C, M_, P_);
-    // Destroy the handle
-    cublasDestroy(handle);
+
 }
 int main(int argc, char **argv)  
 {  
