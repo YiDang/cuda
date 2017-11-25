@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
 	show(host_array_C_seq, M_, P_);
-	for(r = 0; r < M_; r++){for (c = 0; c < P_; c++){printf("%.6f ", A[r*P_+c]);}printf("\n");} printf("\n");
+	for(r = 0; r < M_; r++){for (c = 0; c < P_; c++){printf("%.6f ", host_array_C_seq[r*P_+c]);}printf("\n");} printf("\n");
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
