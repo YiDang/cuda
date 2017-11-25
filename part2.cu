@@ -137,8 +137,9 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			host_array_C[i * M_ + j] = 0;
 			for(int k = 0; k < N_; k++)
 			{
+				printf("index%d\n", i * M_ + j);
 				host_array_C[i * M_ + j] += host_array_A[i * M_ + k] * host_array_B[k * N_ + j];
-				printf("index %d:%d\n,", i * M_ + j, host_array_C[i * M_ + j]);
+				printf("%d,%d,%d,\n", host_array_A[i * M_ + k], host_array_B[k * N_ + j], host_array_C[i * M_ + j]);
 			}
 		}
 	}
