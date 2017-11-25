@@ -6,7 +6,7 @@
 #include <curand_kernel.h>
 #include <cublas_v2.h>
 #define M_ 2  
-#define N_ 2 
+#define N_ 3 
 #define P_ 2 
 
 #define MAX 100
@@ -138,6 +138,7 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			for(int k = 0; k < N_; k++)
 			{
 				host_array_C[i * M_ + j] += host_array_A[i * M_ + k] * host_array_B[k * N_ + j];
+				printf("index %d:%d,", i * M_ + j,host_array_C[i * M_ + j]);
 			}
 		}
 	}
