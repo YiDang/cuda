@@ -31,6 +31,13 @@ int main(void)
     std::cout << "\n";
   }
 
+  for (size_t i = 0; i < rowD * colD; i++){
+    
+      std::cout << D[i] << " ";
+    
+    std::cout << ",";
+  }
+
   for (size_t i = 0; i < rowE; i++){
     for (size_t j = 0; j < colE; j++){
       E[ci(i,j,colE)]=i+j;
