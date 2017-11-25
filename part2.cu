@@ -170,13 +170,13 @@ int main(int argc, char **argv)
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 	cuda(host_array_A, host_array_B, host_array_C_para);
-	show(host_array_A);
-	show(host_array_B);
-	show(host_array_C_para);
+	show(host_array_A, M_, N_);
+	show(host_array_A, N_, P_);
+	show(host_array_C_para, M_, P_);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
-	show(host_array_C_seq);
-
+	show(host_array_C_seq, M_, P_);
+	
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
     printf("\n");
