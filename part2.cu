@@ -149,11 +149,11 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 
 	for(int i = 0; i < M_ * N_; i++)
 	{
-		std::cout << host_array_A[i] << " ";
+		std::cout  << " ";
 	}
 	for(int i = 0; i < P_ * N_; i++)
 	{
-		std::cout << host_array_B[i] << " ";
+		std::cout  << " ";
 	}
     // Do the actual multiplication
 
