@@ -152,7 +152,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     cublasCreate(&handle);
  
     // Do the actual multiplication
-    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, N_, P_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
 
     // Destroy the handle
     cublasDestroy(handle);
