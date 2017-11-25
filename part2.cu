@@ -9,7 +9,7 @@
 #define N_ 4 
 #define P_ 3 
 
-#define show(host_array_A) for(r = 0; r < M_; r++){for (c = 0; c < N_; c++){printf("%.6f ", host_array_A[r*N_+c]);}printf("\n");} printf("\n");
+#define show(A, M, N) for(r = 0; r < M; r++){for (c = 0; c < N; c++){printf("%.6f ", A[r*N+c]);}printf("\n");} printf("\n");
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
