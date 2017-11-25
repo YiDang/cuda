@@ -130,8 +130,6 @@ void initArray(float *array, int len)
 }
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
-	show(host_array_A, M_, N_);
-	show(host_array_B, N_, P_);
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -140,8 +138,8 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			for(int k = 0; k < N_; k++)
 			{
 				printf("index%d\n", i * M_ + j);
-				host_array_C[i * M_ + j] += host_array_A[i * M_ + k] * host_array_B[k * N_ + j];
-				printf("%d,%d,%d,\n", host_array_A[i * M_ + k], host_array_B[k * N_ + j], host_array_C[i * M_ + j]);
+				host_array_C[i * M_ + j] += host_array_A[i * N_ + k] * host_array_B[k * P_ + j];
+				printf("%d,%d,%d,\n", host_array_A[i * N_ + k], host_array_B[k * P_ + j], host_array_C[i * M_ + j]);
 			}
 		}
 	}
