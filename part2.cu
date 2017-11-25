@@ -194,7 +194,7 @@ int main(int argc, char **argv)
     {  
         for (c = 0; c < P_; c++)  
         {  
-            printf("%.6f ", host_array_C_para[r*P_+c]);   
+            printf("%.6f ", host_array_C_seq[r*P_+c]);   
         }  
         printf("\n");  
     }
