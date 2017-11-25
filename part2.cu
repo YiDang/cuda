@@ -146,8 +146,14 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 }
 
-void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const int k, const int n) {
-   	int lda=k,ldb=n,ldc=n;
+void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+{
+ 	printf("start\n");
+ 	show(host_array_A, M_, N_);
+	show(host_array_B, N_, P_);
+    // Do the actual multiplication
+
+    int lda=N_ ,ldb=P_, ldc=P_;
 	const float alf = 1.0f;
 	const float bet = 0.0f;
 	const float *alpha = &alf;
@@ -161,24 +167,19 @@ void gpu_blas_mmul(const float *A, const float *B, float *C, const int m, const 
   	}
 
     // Do the actual multiplication
-    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
+    						P_, M_, N_, 
+    						alpha, 
+    						B, ldb, 
+    						A, lda, 
+    						beta, 
+    						C, ldc);
  	if (status != CUBLAS_STATUS_SUCCESS) {
     	std::cerr << "!!!! kernel execution error.\n";
   	}
 
     // Destroy the handle
     cublasDestroy(handle);
-}
-
-
-void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
-{
- 	printf("start\n");
- 	show(host_array_A, M_, N_);
-	show(host_array_B, N_, P_);
-    // Do the actual multiplication
-
-    gpu_blas_mmul(host_array_A, host_array_B, host_array_C, M_, N_, P_);
 
     show(host_array_C, M_, P_);
 
