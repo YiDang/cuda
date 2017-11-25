@@ -9,8 +9,6 @@
 #define N_ 4 
 #define P_ 3 
 
-#define show(A, M, N) for(r = 0; r < M; r++){for (c = 0; c < N; c++){printf("%.6f ", A[r*N+c]);}printf("\n");} printf("\n");
-
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
@@ -154,7 +152,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     cublasCreate(&handle);
 
  	printf("start\n");
-
+ 	
     // Do the actual multiplication
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, N_, P_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
 
@@ -171,16 +169,47 @@ int main(int argc, char **argv)
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 	cuda(host_array_A, host_array_B, host_array_C_para);
 
-	show(host_array_A, M_, N_);
-	show(host_array_B, N_, P_);
-	show(host_array_C_para, M_, P_);
+    for (r = 0; r < N_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_B[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    printf("\n");
+    for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C_para[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    printf("\n");
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
-	show(host_array_C_seq, M_, P_);
-	for(r = 0; r < M_; r++){for (c = 0; c < P_; c++){printf("%.6f ", host_array_C_seq[r*P_+c]);}printf("\n");} printf("\n");
+
+	for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C_para[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
+    printf("\n");
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
+    for (r = 0; r < M_; r++)  
+    {  
+        for (c = 0; c < P_; c++)  
+        {  
+            printf("%.6f ", host_array_C_cublas[r*P_+c]);   
+        }  
+        printf("\n");  
+    }
     printf("\n");
 	free(host_array_A); 
 	free(host_array_B); 
