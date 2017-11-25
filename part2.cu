@@ -171,7 +171,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	show(host_array_B, N_, P_);
     // Do the actual multiplication
 
-    gpu_blas_mmul(host_array_A, host_array_B, host_array_C, const int M_, const int N_, const int P_);
+    gpu_blas_mmul(host_array_A, host_array_B, host_array_C, M_, N_, P_);
 
     show(host_array_C, M_, P_);
 
