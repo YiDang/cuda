@@ -170,10 +170,10 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
     						P_, M_, N_, 
     						alpha, 
-    						B, ldb, 
-    						A, lda, 
+    						host_array_B, ldb, 
+    						host_array_A, lda, 
     						beta, 
-    						C, ldc);
+    						host_array_C, ldc);
  	if (status != CUBLAS_STATUS_SUCCESS) {
     	std::cerr << "!!!! kernel execution error.\n";
   	}
