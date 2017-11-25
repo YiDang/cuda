@@ -11,6 +11,17 @@
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
+
+#define show(matrix, lenm, lenn)
+		for (r = 0; r < lenm; r++)  
+    	{  
+        	for (c = 0; c < lenn; c++)  
+        	{  
+            		printf("%.6f ", matrix[r*lenn+c]);   
+        	}  
+        printf("\n");  
+    	}
+    printf("\n");
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
@@ -170,48 +181,18 @@ int main(int argc, char **argv)
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 	cuda(host_array_A, host_array_B, host_array_C_para);
 
-    for (r = 0; r < N_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_B[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_para[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
+	show(host_array_A, M_; N_);
+	show(host_array_B, N; P_);
+	show(host_array_C_para, M_; P_);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
 
-	for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_seq[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
+	show(host_array_C_seq, M_; P_);
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_cublas[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
+    show(host_array_C_cublas, M_; P_);
+    
 	free(host_array_A); 
 	free(host_array_B); 
 	free(host_array_C_para); 
