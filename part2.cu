@@ -16,6 +16,7 @@
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
+cudaError_t res;
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
@@ -47,13 +48,12 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
     }
 }
 
-void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
+void cuda(float *host_array_A, float *host_array_B, float *host_array_C, float *device_array_A, float *device_array_B)
 {
 	float **device_matrix_A = NULL;  
     float **host_matrix_A = NULL;  
     //float *device_array_A = NULL;  
-    //float *host_array_A = NULL;  
-    cudaError_t res;  
+    //float *host_array_A = NULL;   
   
   
     res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(float*));CHECK(res)  
