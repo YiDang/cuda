@@ -9,6 +9,10 @@
 #define N_ 4 
 #define P_ 3 
 
+#define show(A) for(r = 0; r < M_; r++){for (c = 0; c < N_; c++){printf("%.6f ", host_array_A[r*N_+c]);}printf("\n");} printf("\n");
+#define show(B) for(r = 0; r < N_; r++){for (c = 0; c < P_; c++){printf("%.6f ", host_array_B[r*P_+c]);}printf("\n");} printf("\n");
+#define show(C) for(r = 0; r < M_; r++){for (c = 0; c < P_; c++){printf("%.6f ", host_array_C[r*P_+c]);}printf("\n");} printf("\n");
+
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
@@ -150,7 +154,9 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     // Create a handle for CUBLAS
     cublasHandle_t handle;
     cublasCreate(&handle);
- 
+
+ 	printf("start\n");
+
     // Do the actual multiplication
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, N_, P_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
 
@@ -166,56 +172,15 @@ int main(int argc, char **argv)
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 	cuda(host_array_A, host_array_B, host_array_C_para);
-	for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < N_; c++)  
-        {  
-            printf("%.6f ", host_array_A[r*N_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
-    for (r = 0; r < N_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_B[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_para[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
+	show(A);
+	show(B);
+	show(C);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
-
-	for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_para[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
-    printf("\n");
+	show(C);
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
-    for (r = 0; r < M_; r++)  
-    {  
-        for (c = 0; c < P_; c++)  
-        {  
-            printf("%.6f ", host_array_C_cublas[r*P_+c]);   
-        }  
-        printf("\n");  
-    }
     printf("\n");
 	free(host_array_A); 
 	free(host_array_B); 
