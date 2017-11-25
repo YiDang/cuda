@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 	cuda(host_array_A, host_array_B, host_array_C_para);
 
 	show(host_array_A, M_, N_);
-	show(host_array_B, N, P_);
+	show(host_array_B, N_, P_);
 	show(host_array_C_para, M_, P_);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
