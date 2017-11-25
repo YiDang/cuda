@@ -161,7 +161,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
  	show(host_array_A, M_, N_);
 	show(host_array_B, N_, P_);
     // Do the actual multiplication
-    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, N_, P_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, M_, P_, N_, alpha, host_array_A, lda, host_array_B, ldb, beta, host_array_C, ldc);
 
     show(host_array_C, M_, P_);
     // Destroy the handle
