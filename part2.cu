@@ -172,10 +172,10 @@ int main(int argc, char **argv)
 	cuda(host_array_A, host_array_B, host_array_C_para);
 	show(host_array_A);
 	show(host_array_B);
-	show(host_array_C);
+	show(host_array_C_para);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
-	show(host_array_C);
+	show(host_array_C_seq);
 
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
