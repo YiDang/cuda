@@ -184,9 +184,9 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
                             P_, M_, N_, 
                             &alpha, 
                             thrust::raw_pointer_cast(&dvB[0]), ldb, 
-                            thrust::raw_pointer_cast(&dvA[0], lda, 
+                            thrust::raw_pointer_cast(&dvA[0]), lda, 
                             &beta, 
-                            thrust::raw_pointer_cast(&dvC[0], ldc);
+                            thrust::raw_pointer_cast(&dvC[0]), ldc);
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! kernel execution error.\n";
     }
