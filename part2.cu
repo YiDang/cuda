@@ -162,9 +162,9 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	{
 		hvB[i] = host_array_B[i];
 	}
-	thrust::device_vector<int> dvA = hvA;
-	thrust::device_vector<int> dvB = hvB;
-	thrust::device_vector<int> dvC(M_ * P_);
+	thrust::device_vector<float> dvA = hvA;
+	thrust::device_vector<float> dvB = hvB;
+	thrust::device_vector<float> dvC(M_ * P_);
 
 	 // Do the actual multiplication
 
