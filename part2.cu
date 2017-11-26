@@ -149,11 +149,11 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
- 	printf("start\n");
+ 	printf("cublas start\n");
  	//show(host_array_A, M_, N_);
 	//show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
-	thrust::host_vector<float> hvB(P_ * N_);
+	thrust::host_vector<float> hvB(N_ * P_);
 	for(int i = 0; i < M_ * N_; i++) 
 	{
 		hvA[i] = host_array_A[i];
@@ -164,7 +164,38 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 	thrust::device_vector<int> dvA = hvA;
 	thrust::device_vector<int> dvB = hvB;
-	printf("\n");
+	thrust::device_vector<int> dvC(M_ * P_);
+
+	 // Do the actual multiplication
+
+    int lda=N_ ,ldb=P_, ldc=P_;
+    const float alpha = 1.0f;
+    const float beta = 0.0f;
+ 
+    // Create a handle for CUBLAS
+    cublasHandle_t handle;
+    cublasStatus_t status = cublasCreate(&handle);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        std::cerr << "!!!! CUBLAS initialization error\n";
+    }
+
+    // Do the actual multiplication
+    status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
+                            P_, M_, N_, 
+                            &alpha, 
+                            dvB, ldb, 
+                            dvA, lda, 
+                            &beta, 
+                            dvC, ldc);
+    if (status != CUBLAS_STATUS_SUCCESS) {
+        std::cerr << "!!!! kernel execution error.\n";
+    }
+
+    for(int i = 0; i < M_ * P_; i++) 
+	{
+		std::cout<< dvC[i] <<",";
+	}
+    // Destroy the handle
 
 
 
