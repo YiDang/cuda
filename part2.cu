@@ -152,12 +152,18 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
  	printf("start\n");
  	//show(host_array_A, M_, N_);
 	//show(host_array_B, N_, P_);
-	thrust::host_vector<float> D(M_ * N_);
+	thrust::host_vector<float> hvA(M_ * N_);
+	thrust::host_vector<float> hvB(P_ * N_);
 	for(int i = 0; i < M_ * N_; i++) 
 	{
-		D[i] = host_array_A[i];
-		std::cout<<D[i];
+		hvA[i] = host_array_A[i];
 	}
+	for(int i = 0; i < P_ * N_; i++) 
+	{
+		hvB[i] = host_array_B[i];
+	}
+	thrust::device_vector<int> dvA = hvA;
+	thrust::device_vector<int> dvB = hvBS;
 	printf("\n");
 
 
