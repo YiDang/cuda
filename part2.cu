@@ -163,7 +163,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 		hvB[i] = host_array_B[i];
 	}
 	thrust::device_vector<int> dvA = hvA;
-	thrust::device_vector<int> dvB = hvBS;
+	thrust::device_vector<int> dvB = hvB;
 	printf("\n");
 
 
