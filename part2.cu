@@ -191,7 +191,13 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
         std::cerr << "!!!! kernel execution error.\n";
     }
 
-	show(dvC, M_, P_);
+    for(int i = 0; i < M_; i++) 
+	{
+		for(int j = 0; j < P_; j++)
+			std::cout<< dvC[i * P_ + j] <<" ";
+		std::cout<< std::endl;
+	}
+
     // Destroy the handle
 
 
