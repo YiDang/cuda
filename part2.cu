@@ -8,8 +8,8 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 #define M_ 2  
-#define N_ 2 
-#define P_ 2 
+#define N_ 4 
+#define P_ 3 
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -150,8 +150,8 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
  	printf("cublas start\n");
- 	//show(host_array_A, M_, N_);
-	//show(host_array_B, N_, P_);
+ 	show(host_array_A, M_, N_);
+	show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
 	for(int i = 0; i < M_ * N_; i++) 
@@ -191,10 +191,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
         std::cerr << "!!!! kernel execution error.\n";
     }
 
-    for(int i = 0; i < M_ * P_; i++) 
-	{
-		std::cout<< dvC[i] <<",";
-	}
+	show(dvC, M_, P_);
     // Destroy the handle
 
 
