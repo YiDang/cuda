@@ -16,21 +16,7 @@
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
-__global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int seed)  
-{  
-    unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
-    unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
-    curandState_t state;
-    curand_init((row*cols + col) * seed, /* the seed controls the sequence of random values that are produced */
-              row, /* the sequence number is only important with multiple cores */
-              0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
-              &state);
-    if (row < rows && col < cols)  
-    {  
-        //m[row][col] = curand_uniform(&state);
-        m[row][col] = 1;
-    }  
-}  
+
 
 __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
 {  
@@ -50,18 +36,39 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
     }  
 }
 
-__global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, unsigned int n, unsigned int p)  
+__global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
  	
- 	
+    extern __shared__ float sA[];
+    extern __shared__ float sB[];
+    extern __shared__ float sC[];
+ 	//copy A
+    if (row < m && col < n) 
+    {
+        int idx = row * n +col;
+        sA[idx] = arrayA[idx]; 
+    }
+
+    //copy B
+    if (row < n && col < p) 
+    {
+        int idx = row * p +col;
+        sB[idx] = arrayB[idx]; 
+    }
+
+    __syncthreads();
+
  	if (row < m && col < p)  
     { 
-    	mC[row][col] = 0;
-	    for(int i = 0; i < n; i++){
-	    	mC[row][col] += mA[row][i] * mB[i][col];
+        int idx = row * p + col;
+    	sC[idx] = 0;
+	    for(int i = 0; i < n; i++)
+        {
+	    	sC[idx] += sA[row][i] * sB[i][col];
 	    }
+        array[idx] = sC[idx];
     }
 }
 
@@ -72,7 +79,6 @@ void cudaInit(float *host_array_A, int rows, int cols)
     dim3 dimGrid((cols+dimBlock.x-1)/(dimBlock.x), (rows+dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
-
     res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
     InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
@@ -81,8 +87,28 @@ void cudaInit(float *host_array_A, int rows, int cols)
     cudaFree((void*)device_array_A);
 } 
 
+void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
+{
+    cudaError_t res;
+    dim3 dimBlock(16,16);  
+    int maxd = std::max(P_ ,std::max(M_ , N_);
+    dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
+
+    float *device_array_A = NULL;
+    res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), 
+
+    float *device_array_A = NULL;
+    res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), 
+
+    Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);
+
+}
+
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
+    printf("seq start\n");
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -101,8 +127,8 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
  	printf("cublas start\n");
- 	show(host_array_A, M_, N_);
-	show(host_array_B, N_, P_);
+ 	//show(host_array_A, M_, N_);
+	//show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
 	for(int i = 0; i < M_ * N_; i++) 
@@ -166,6 +192,8 @@ int main(int argc, char **argv)
 	show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
 	show(host_array_B, N_, P_);
+
+    cuda
 	//show(host_array_C_para, M_, P_);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
