@@ -44,6 +44,7 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   row, /* the sequence number is only important with multiple cores */
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
+
         //a[row][col] = curand_uniform(&state);
         a[row * cols + col] = 1;
     }  
@@ -141,18 +142,18 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     //free(host_array_C); 
 } 
 
-void cudaInit(float *host_array_A, float *host_array_B, float *host_array_C)
+void cudaInit(float *host_array_A)
 {
     cudaError_t res;
     dim3 dimBlock(16,16);  
     dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
+
     res = cudaMalloc((void**)(&device_array_A), M_ * N_ *sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
     InitArray<<<dimGrid, dimBlock>>>(device_array_A, M_, N_, 1);
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_* N_ * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-
 } 
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
@@ -235,10 +236,11 @@ int main(int argc, char **argv)
 	float *host_array_C_para = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
-	//cuda(host_array_A, host_array_B, host_array_C_para);
-    cudaInit(host_array_A, host_array_B, host_array_C_para);
+
+    cudaInit(host_array_A);
 	show(host_array_A, M_, N_);
-	//show(host_array_B, N_, P_);
+    cudaInit(host_array_B);
+	show(host_array_B, N_, P_);
 	//show(host_array_C_para, M_, P_);
 
 	//sequential(host_array_A, host_array_B, host_array_C_seq);
