@@ -63,10 +63,11 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
  	if (row < m && col < p)  
     { 
         int idx = row * p + col;
+        int idxa = row * n + i, idxb = i * p + col;
     	sC[idx] = 0;
 	    for(int i = 0; i < n; i++)
         {
-	    	sC[idx] += sA[row][i] * sB[i][col];
+	    	sC[idx] += sA[idxa] * sB[idxb];
 	    }
         array[idx] = sC[idx];
     }
@@ -96,13 +97,13 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 
     float *device_array_A = NULL;
     res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(float));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), 
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    float *device_array_A = NULL;
-    res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), 
+    float *device_array_B = NULL;
+    res = cudaMalloc((void**)(&device_array_B), N_ * P_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_B), (void*)(host_array_B), N_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);
+    Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
 
 }
 
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
     cudaInit(host_array_B, N_, P_);
 	show(host_array_B, N_, P_);
 
-    cuda
+    cudaMul(host_array_A, host_array_B, host_array_C);
 	//show(host_array_C_para, M_, P_);
 
 	sequential(host_array_A, host_array_B, host_array_C_seq);
