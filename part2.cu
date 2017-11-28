@@ -109,11 +109,12 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 
     Multiply<<<dimGrid, dimBlock, (M_*N_ + N_*P_ + M_*P_) * sizeof(float)>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
 
+    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
+
 }
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
-    printf("seq start\n");
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -208,7 +209,7 @@ int main(int argc, char **argv)
     printf("cublas start\n");
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
-    show(host_array_C_cublas, M_, P_);
+    //show(host_array_C_cublas, M_, P_);
     
 	free(host_array_A); 
 	free(host_array_B); 
