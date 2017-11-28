@@ -69,7 +69,7 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
         {
 	    	sC[idx] += sA[idxa] * sB[idxb];
 	    }
-        array[idx] = sC[idx];
+        arrayC[idx] = sC[idx];
     }
 }
 
@@ -92,7 +92,7 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 {
     cudaError_t res;
     dim3 dimBlock(16,16);  
-    int maxd = std::max(P_ ,std::max(M_ , N_);
+    int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
@@ -103,7 +103,11 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
     res = cudaMalloc((void**)(&device_array_B), N_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_B), (void*)(host_array_B), N_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    float *device_array_C = NULL;
+    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
+
+    Multiply<<<dimGrid, dimBlock, (M_*N_ + N_*P_ + M_*P_) * sizeof(float)>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
 
 }
 
