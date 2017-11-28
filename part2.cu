@@ -32,6 +32,23 @@ __global__ void InitMatrix(float **m, unsigned int rows, unsigned int cols, int 
     }  
 }  
 
+__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
+{  
+    unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
+    unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
+    curandState_t state;
+    
+    if (row < rows && col < cols)  
+    {  
+        curand_init((row*cols + col) * seed, /* the seed controls the sequence of random values that are produced */
+                  row, /* the sequence number is only important with multiple cores */
+                  0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
+                  &state);
+        //m[row][col] = curand_uniform(&state);
+        m[row * cols + col] = 1;
+    }  
+}
+
 __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, unsigned int n, unsigned int p)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
@@ -122,14 +139,20 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
    	//free(host_array_B); 
     free(host_matrix_C);  
     //free(host_array_C); 
-}  
+} 
 
-void initArray(float *array, int len)
+void cudaInit(float *host_array_A, float *host_array_B, float *host_array_C)
 {
-	for(int i = 0; i < len; i++){
+    dim3 dimBlock(16,16);  
+    dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));
 
-	}
-}
+    res = cudaMalloc((void**)(&device_array_A), M_ * N_ *sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
+    InitArray<<<dimGrid, dimBlock>>>(device_array_A, M_, N_, 1);
+    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_* N_ * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
+
+} 
+
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {
 	for(int i = 0; i < M_; i++)
@@ -210,17 +233,17 @@ int main(int argc, char **argv)
 	float *host_array_C_para = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
-	cuda(host_array_A, host_array_B, host_array_C_para);
-
-	//show(host_array_A, M_, N_);
+	//cuda(host_array_A, host_array_B, host_array_C_para);
+    cudaInit(host_array_A, host_array_B, host_array_C_para);
+	show(host_array_A, M_, N_);
 	//show(host_array_B, N_, P_);
 	//show(host_array_C_para, M_, P_);
 
-	sequential(host_array_A, host_array_B, host_array_C_seq);
+	//sequential(host_array_A, host_array_B, host_array_C_seq);
 
 	//show(host_array_C_seq, M_, P_);
 
-    cublas(host_array_A, host_array_B, host_array_C_cublas);
+    //cublas(host_array_A, host_array_B, host_array_C_cublas);
 
     //show(host_array_C_cublas, M_, P_);
     
