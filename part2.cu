@@ -237,9 +237,9 @@ int main(int argc, char **argv)
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    cudaInit(host_array_A);
+    cudaInit(host_array_A, M_, N_);
 	show(host_array_A, M_, N_);
-    cudaInit(host_array_B);
+    cudaInit(host_array_B, N_, P_);
 	show(host_array_B, N_, P_);
 	//show(host_array_C_para, M_, P_);
 
