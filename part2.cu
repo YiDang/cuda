@@ -65,83 +65,6 @@ __global__ void Multiply(float **mA, float **mB, float **mC, unsigned int m, uns
     }
 }
 
-void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
-{
-	float **device_matrix_A = NULL;  
-    float **host_matrix_A = NULL;  
-    float *device_array_A = NULL;  
-    //float *host_array_A = NULL;  
-    cudaError_t res;  
-  
-  
-    res = cudaMalloc((void**)(&device_matrix_A), M_*sizeof(float*));CHECK(res)  
-    res = cudaMalloc((void**)(&device_array_A), M_*N_*sizeof(float));CHECK(res)  
-    host_matrix_A = (float**)malloc(M_*sizeof(float*));  
-    //host_array_A = (float*)malloc(M_*N_*sizeof(float));  
-  
-    for (int r = 0; r < M_; r++)  
-    {  
-        host_matrix_A[r] = device_array_A + r*N_;  
-    }  
-
-    res = cudaMemcpy((void*)(device_matrix_A), (void*)(host_matrix_A), M_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res)  
-    dim3 dimBlock(16,16);  
-    dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));  
-    InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_A, M_, N_, 1);  
-    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_*N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-
-    float **device_matrix_B = NULL;  
-    float **host_matrix_B = NULL;  
-    float *device_array_B = NULL;  
-    //float *host_array_B = NULL;  
-  
-    res = cudaMalloc((void**)(&device_matrix_B), N_*sizeof(float*));CHECK(res)  
-    res = cudaMalloc((void**)(&device_array_B), N_*P_*sizeof(float));CHECK(res)  
-    host_matrix_B = (float**)malloc(N_*sizeof(float*));  
-    //host_array_B = (float*)malloc(N_*P_*sizeof(float));  
-  
-    for (int r = 0; r < N_; r++)  
-    {  
-        host_matrix_B[r] = device_array_B + r*P_;  
-    }  
-
-    res = cudaMemcpy((void*)(device_matrix_B), (void*)(host_matrix_B), N_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res)   
-    InitMatrix<<<dimGrid, dimBlock>>>(device_matrix_B, N_, P_, 2);  
-    res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-
-    float **device_matrix_C = NULL;  
-    float **host_matrix_C = NULL;  
-    float *device_array_C = NULL;  
-    //float *host_array_C = NULL;  
-
-    res = cudaMalloc((void**)(&device_matrix_C), M_*sizeof(float*));CHECK(res)  
-    res = cudaMalloc((void**)(&device_array_C), M_*P_*sizeof(float));CHECK(res)  
-    host_matrix_C = (float**)malloc(M_*sizeof(float*));  
-    //host_array_C = (float*)malloc(M_*P_*sizeof(float));  
-
-    for (int r = 0; r < M_; r++)  
-    {  
-        host_matrix_C[r] = device_array_C + r*P_;  
-    } 
-
-    res = cudaMemcpy((void*)(device_matrix_C), (void*)(host_matrix_C), M_*sizeof(float*), cudaMemcpyHostToDevice);CHECK(res) 
-    Multiply<<<dimGrid, dimBlock>>>(device_matrix_A, device_matrix_B, device_matrix_C, M_, N_, P_);  
-    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_*P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
-  
-    cudaFree((void*)device_matrix_A);  
-    cudaFree((void*)device_array_A);  
-    cudaFree((void*)device_matrix_B);  
-    cudaFree((void*)device_array_B);  
-    cudaFree((void*)device_matrix_C);  
-    cudaFree((void*)device_array_C); 
-    free(host_matrix_A);  
-    //free(host_array_A);  
-    free(host_matrix_B);  
-   	//free(host_array_B); 
-    free(host_matrix_C);  
-    //free(host_array_C); 
-} 
-
 void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
@@ -154,6 +77,8 @@ void cudaInit(float *host_array_A, int rows, int cols)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
     InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
+
+    cudaFree((void*)device_array_A);
 } 
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
@@ -243,13 +168,13 @@ int main(int argc, char **argv)
 	show(host_array_B, N_, P_);
 	//show(host_array_C_para, M_, P_);
 
-	//sequential(host_array_A, host_array_B, host_array_C_seq);
+	sequential(host_array_A, host_array_B, host_array_C_seq);
 
-	//show(host_array_C_seq, M_, P_);
+	show(host_array_C_seq, M_, P_);
 
-    //cublas(host_array_A, host_array_B, host_array_C_cublas);
+    cublas(host_array_A, host_array_B, host_array_C_cublas);
 
-    //show(host_array_C_cublas, M_, P_);
+    show(host_array_C_cublas, M_, P_);
     
 	free(host_array_A); 
 	free(host_array_B); 
