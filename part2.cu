@@ -44,6 +44,7 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   row, /* the sequence number is only important with multiple cores */
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
+
         //a[row][col] = curand_uniform(&state);
         a[row * cols + col] = 1;
     }  
@@ -148,6 +149,7 @@ void cudaInit(float *host_array_A, float *host_array_B, float *host_array_C)
     dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
+
     res = cudaMalloc((void**)(&device_array_A), M_ * N_ *sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
     InitArray<<<dimGrid, dimBlock>>>(device_array_A, M_, N_, 1);
