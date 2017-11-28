@@ -142,18 +142,18 @@ void cuda(float *host_array_A, float *host_array_B, float *host_array_C)
     //free(host_array_C); 
 } 
 
-void cudaInit(float *host_array_A)
+void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
     dim3 dimBlock(16,16);  
-    dim3 dimGrid((N_+dimBlock.x-1)/(dimBlock.x), (M_+dimBlock.y-1)/(dimBlock.y));
+    dim3 dimGrid((cols+dimBlock.x-1)/(dimBlock.x), (rows+dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
 
-    res = cudaMalloc((void**)(&device_array_A), M_ * N_ *sizeof(float));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
-    InitArray<<<dimGrid, dimBlock>>>(device_array_A, M_, N_, 1);
-    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_* N_ * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
+    res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
+    InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
+    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
 } 
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
