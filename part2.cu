@@ -63,11 +63,11 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
  	if (row < m && col < p)  
     { 
         int idx = row * p + col;
-        int idxa = row * n + i, idxb = i * p + col;
+        //int idxa = row * n + i, idxb = i * p + col;
     	sC[idx] = 0;
 	    for(int i = 0; i < n; i++)
         {
-	    	sC[idx] += sA[idxa] * sB[idxb];
+	    	sC[idx] += sA[row * n + i] * sB[i * p + col];
 	    }
         arrayC[idx] = sC[idx];
     }
@@ -131,7 +131,6 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
- 	printf("cublas start\n");
  	//show(host_array_A, M_, N_);
 	//show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
@@ -198,13 +197,15 @@ int main(int argc, char **argv)
     cudaInit(host_array_B, N_, P_);
 	show(host_array_B, N_, P_);
 
-    cudaMul(host_array_A, host_array_B, host_array_C);
-	//show(host_array_C_para, M_, P_);
+    printf("cuda start\n");
+    cudaMul(host_array_A, host_array_B, host_array_C_para);
+	show(host_array_C_para, M_, P_);
 
+    printf("seq start\n");
 	sequential(host_array_A, host_array_B, host_array_C_seq);
-
 	show(host_array_C_seq, M_, P_);
 
+    printf("cublas start\n");
     cublas(host_array_A, host_array_B, host_array_C_cublas);
 
     show(host_array_C_cublas, M_, P_);
