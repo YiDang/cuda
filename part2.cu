@@ -55,25 +55,25 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     if (row < n && col < p) 
     {
         int idx = row * p +col;
-        sB[idx] = arrayB[idx] * 2; 
+        sB[idx] = arrayB[idx]; 
     }
 
     __syncthreads();
-    if(row == 0 && col ==0)
-    {
-        for(int i = 0; i < m * n; i++)
-        {
-            printf("%2f,", sA[i]);
-        }
-        printf("\n");
-
-        for(int i = 0; i < p * n; i++)
-        {
-            printf("%2f,", sB[i]);
-        }
-        printf("\n");
-        
-    }
+//    if(row == 0 && col ==0)
+//    {
+//        for(int i = 0; i < m * n; i++)
+//        {
+//            printf("%2f,", sA[i]);
+//        }
+//        printf("\n");
+//
+//        for(int i = 0; i < p * n; i++)
+//        {
+//            printf("%2f,", sB[i]);
+//        }
+//        printf("\n");
+//        
+//    }
 
  	if (row < m && col < p)  
     { 
@@ -83,21 +83,8 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
 	    for(int i = 0; i < n; i++)
         {
 	    	sC[idx] += sA[row * n + i] * sB[i * p + col];
-
-            if(idx == 0 ) printf("sc[0] = %2f , sa[0] = %2f , sb[0] = %2f , idxa = %d, idxb = %d\n", sC[idx], sA[row * n + i] , sB[i * p + col], row * n + i, i * p + col);
-
 	    }
         arrayC[idx] = sC[idx];
-    }
-
-    __syncthreads();
-    if(row == 0 && col ==0)
-    {
-        for(int i = 0; i < p * m; i++)
-        {
-            printf("%2f,", sC[i]);
-        }
-        printf("\n");
     }
 }
 
