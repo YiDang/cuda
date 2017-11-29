@@ -63,8 +63,9 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     {
         for(int i = 0; i < m; i++)
         {
-            printf("%2f", sA[i]);
+            printf("%2f,", sA[i]);
         }
+         printf("\n");
         
     }
 
