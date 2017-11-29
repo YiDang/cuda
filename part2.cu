@@ -108,7 +108,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
 
 void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
-	auto start = rdtsc();
+	int start = rdtsc();
     cudaError_t res;
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
@@ -138,7 +138,7 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int 
     
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
-    auto end = rdtsc();
+    int end = rdtsc();
     cudaFree((void*)device_array_A);
     cudaFree((void*)device_array_B);
     cudaFree((void*)device_array_C);
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-	auto diff = 0;
+	int diff = 0;
     cudaInit(host_array_A, M_, N_);
 	show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
