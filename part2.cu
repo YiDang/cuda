@@ -11,7 +11,7 @@
 #define N_ 4 
 #define P_ 4 
 
-#define MAX 100
+#define BLOCK_SIZE 4
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -92,7 +92,7 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
 void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
-    dim3 dimBlock(16,16);  
+    dim3 dimBlock(BLOCK_SIZE,BLOCK_SIZE);  
     dim3 dimGrid((cols+dimBlock.x-1)/(dimBlock.x), (rows+dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
@@ -108,8 +108,8 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 {
     cudaError_t res;
      
-    int maxd = std::max(P_ ,std::max(M_ , N_));
-    dim3 dimBlock(maxd, maxd); 
+    //int maxd = std::max(P_ ,std::max(M_ , N_));
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
