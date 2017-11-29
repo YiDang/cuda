@@ -74,7 +74,7 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
         printf("\n");
         
     }
-
+    __syncthreads();
  	if (row < m && col < p)  
     { 
         int idx = row * p + col;
@@ -83,7 +83,9 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
 	    for(int i = 0; i < n; i++)
         {
 	    	sC[idx] += sA[row * n + i] * sB[i * p + col];
+
             if(idx == 0 ) printf("sc = %2f , sa = %2f , sb = %2f , idxa = %d, idxb = %d\n", sC[idx], sA[row * n + i] , sB[i * p + col], row * n + i, i * p + col);
+
 	    }
         arrayC[idx] = sC[idx];
     }
