@@ -106,7 +106,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
     cudaFree((void*)device_array_A);
 } 
 
-void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
+int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
 	int start = rdtsc();
     cudaError_t res;
