@@ -41,9 +41,9 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
  	
-    extern __shared__ float sA[];
-    extern __shared__ float sB[];
-    extern __shared__ float sC[];
+    __shared__ float sA[M_*N_];
+    __shared__ float sB[P_*N_];
+    __shared__ float sC[M_*P_];
  	//copy A
     if (row < m && col < n) 
     {
@@ -136,7 +136,7 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    Multiply<<<dimGrid, dimBlock, (M_*N_ + N_*P_ + M_*P_) * sizeof(float)>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
 
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_ * N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
     //res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
