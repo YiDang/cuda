@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 
     printf("cuda start\n");
     cudaMul(host_array_A, host_array_B, host_array_C_para);
-    show(host_array_A, M_, N_);
+    //show(host_array_A, M_, N_);
     //show(host_array_B, N_, P_);
 	//show(host_array_C_para, M_, P_);
 
