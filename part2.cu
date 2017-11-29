@@ -16,7 +16,11 @@
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
-
+uint64_t rdtsc(){
+    unsigned int lo,hi;
+    __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+    return ((uint64_t)hi << 32) | lo;
+}
 
 __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
 {  
@@ -103,7 +107,8 @@ void cudaInit(float *host_array_A, int rows, int cols)
 } 
 
 void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
-{
+{	
+	auto start = rdtsc();
     cudaError_t res;
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
@@ -133,9 +138,11 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int 
     
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
+    auto end = rdtsc();
     cudaFree((void*)device_array_A);
     cudaFree((void*)device_array_B);
     cudaFree((void*)device_array_C);
+    return end - start;
 }
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
@@ -157,8 +164,6 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
- 	//show(host_array_A, M_, N_);
-	//show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
 	thrust::host_vector<float> hvC(M_ * P_);
@@ -212,7 +217,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	}
 
     // Destroy the handle
-
+    cublasDestroy(handle);
 
 
 }
@@ -223,14 +228,18 @@ int main(int argc, char **argv)
 	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
+	auto diff = 0;
     cudaInit(host_array_A, M_, N_);
 	show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
 	show(host_array_B, N_, P_);
 
     printf("cuda start\n");
-    cudaMul(host_array_A, host_array_B, host_array_C, 0);
+    diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
 	show(host_array_C, M_, P_);
+	std::cout << "Time million cycles:\t\t"
+            << static_cast<double>(diff) / (1024 * 1024)
+            << std::endl;
 
 	printf("cuda tiled start\n");
     cudaMul(host_array_A, host_array_B, host_array_C, 1);
