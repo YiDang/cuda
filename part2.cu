@@ -108,7 +108,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
 
 int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
-	int start = rdtsc();
+	
     cudaError_t res;
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
@@ -127,26 +127,28 @@ int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int m
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
+    int start = rdtsc();
     if(method == 0)
     {
     	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
-    }
+    }  
     else if(method == 1)
     {
     	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
     }
-    
+    int end = rdtsc();
+
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
-    int end = rdtsc();
     cudaFree((void*)device_array_A);
     cudaFree((void*)device_array_B);
     cudaFree((void*)device_array_C);
     return end - start;
 }
 
-void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
-{
+int sequential(float *host_array_A, float *host_array_B, float *host_array_C)
+{	
+	int start = rdtsc();
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -160,9 +162,11 @@ void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			}
 		}
 	}
+	int end = rdtsc();
+	return end - start;
 }
 
-void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+int cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
@@ -179,8 +183,6 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	thrust::device_vector<float> dvB = hvB;
 	thrust::device_vector<float> dvC(M_ * P_);
 
-	 // Do the actual multiplication
-
     int lda=N_ ,ldb=P_, ldc=P_;
     const float alpha = 1.0f;
     const float beta = 0.0f;
@@ -191,7 +193,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! CUBLAS initialization error\n";
     }
-
+    int start = rdtsc();
     // Do the actual multiplication
     status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
                             P_, M_, N_, 
@@ -200,6 +202,8 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
                             thrust::raw_pointer_cast(&dvA[0]), lda, 
                             &beta, 
                             thrust::raw_pointer_cast(&dvC[0]), ldc);
+
+    int end = rdtsc();
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! kernel execution error.\n";
     }
@@ -208,18 +212,11 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     {
     	host_array_C[i] = hvC[i];
     }
-    
-    for(int i = 0; i < M_; i++) 
-	{
-		for(int j = 0; j < P_; j++)
-			std::cout<< dvC[i * P_ + j] <<" ";
-		std::cout<< std::endl;
-	}
 
     // Destroy the handle
     cublasDestroy(handle);
 
-
+    return end - start;
 }
 int main(int argc, char **argv)  
 {  
@@ -239,19 +236,28 @@ int main(int argc, char **argv)
 	show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
-            << std::endl;
+            << std::endl<< std::endl;
 
 	printf("cuda tiled start\n");
-    cudaMul(host_array_A, host_array_B, host_array_C, 1);
+    diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
 	show(host_array_C, M_, P_);
+	std::cout << "Time million cycles:\t\t"
+            << static_cast<double>(diff) / (1024 * 1024)
+            << std::endl<< std::endl;
 
     printf("seq start\n");
-	sequential(host_array_A, host_array_B, host_array_C);
+	diff = sequential(host_array_A, host_array_B, host_array_C);
 	show(host_array_C, M_, P_);
+	std::cout << "Time million cycles:\t\t"
+            << static_cast<double>(diff) / (1024 * 1024)
+            << std::endl<< std::endl;
 
     printf("cublas start\n");
-    cublas(host_array_A, host_array_B, host_array_C_cublas);
+    diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
     show(host_array_C_cublas, M_, P_);
+    std::cout << "Time million cycles:\t\t"
+            << static_cast<double>(diff) / (1024 * 1024)
+            << std::endl<< std::endl;
     
 	free(host_array_A); 
 	free(host_array_B); 
