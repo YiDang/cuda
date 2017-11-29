@@ -161,6 +161,7 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	//show(host_array_B, N_, P_);
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
+	thrust::host_vector<float> hvC(M_ * P_);
 	for(int i = 0; i < M_ * N_; i++) 
 	{
 		hvA[i] = host_array_A[i];
@@ -197,7 +198,8 @@ void cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! kernel execution error.\n";
     }
-
+    hvC = dvC;
+    host_array_C = hvC;
     for(int i = 0; i < M_; i++) 
 	{
 		for(int j = 0; j < P_; j++)
@@ -215,6 +217,7 @@ int main(int argc, char **argv)
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
 	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
     cudaInit(host_array_A, M_, N_);
 	show(host_array_A, M_, N_);
@@ -234,13 +237,12 @@ int main(int argc, char **argv)
 	show(host_array_C, M_, P_);
 
     printf("cublas start\n");
-    cublas(host_array_A, host_array_B, host_array_C);
-
-    //show(host_array_C_cublas, M_, P_);
+    cublas(host_array_A, host_array_B, host_array_C_cublas);
+    show(host_array_C_cublas, M_, P_);
     
 	free(host_array_A); 
 	free(host_array_B); 
 	free(host_array_C); 
-	
+	free(host_array_C_cublas); 
     return 0;  
 }  
