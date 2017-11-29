@@ -8,7 +8,7 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 #define M_ 2  
-#define N_ 4 
+#define N_ 6 
 #define P_ 4 
 
 #define BLOCK_SIZE 4
@@ -89,6 +89,41 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     }
 }
 
+__global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
+{
+    int bx = blockIdx.x;
+    int by = blockIdx.y;
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+    int row = blockDim.y * by + ty;  
+    int col = blockDim.x * bx + tx;
+
+    float v = 0.0;
+
+    int TILE_WIDTH = BLOCK_SIZE
+    for (int i = 0; i < (int)(ceil((float)numAColumns/TILE_WIDTH)); i++)
+    {
+        if (i*TILE_WIDTH + tx < n && row < m)
+            sharedM[ty][tx] = arrayA[row*n + i*TILE_WIDTH + tx];
+        else
+            sharedM[ty][tx] = 0.0;
+
+        if (i*TILE_WIDTH + ty < n && col < p)
+            sharedN[ty][tx] = arrayB[(i*TILE_WIDTH + ty)*p + col];
+        else
+            sharedN[ty][tx] = 0.0;
+        __syncthreads();
+
+        for(int j = 0; j < TILE_WIDTH; j++)
+            v += sharedM[ty][j] * sharedN[j][tx];
+        __syncthreads();
+    }
+
+    if (row < numCRows && col < numCColumns)
+        C[row*numCColumns + col] = v;
+}
+
+    
 void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
@@ -124,7 +159,8 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    //Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    Multi<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
 
     //res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_ * N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
     //res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
