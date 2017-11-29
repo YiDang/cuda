@@ -283,14 +283,9 @@ int main(int argc, char **argv)
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-
-
-
-
-    
+  
 	free(host_array_A); 
-	free(host_array_B); 
-	free(host_array_C); 
+	free(host_array_B);  
 	free(host_array_C_seq); 
 	free(host_array_C_cuda); 
 	free(host_array_C_tile); 
