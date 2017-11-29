@@ -55,7 +55,7 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     if (row < n && col < p) 
     {
         int idx = row * p +col;
-        sB[idx] = arrayB[idx]; 
+        sB[idx] = arrayB[idx] * 2; 
     }
 
     __syncthreads();
