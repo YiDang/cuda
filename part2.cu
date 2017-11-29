@@ -12,7 +12,7 @@
 #define P_ 4 
 
 #define BLOCK_SIZE 4
-#define TILE_WIDTH 4;
+#define TILE_WIDTH 4
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
