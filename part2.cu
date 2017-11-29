@@ -107,8 +107,9 @@ void cudaInit(float *host_array_A, int rows, int cols)
 void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 {
     cudaError_t res;
-    dim3 dimBlock(4,4);  
+     
     int maxd = std::max(P_ ,std::max(M_ , N_));
+    dim3 dimBlock(maxd, maxd); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
