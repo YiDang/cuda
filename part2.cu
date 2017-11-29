@@ -8,7 +8,7 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 #define M_ 2  
-#define N_ 4 
+#define N_ 10 
 #define P_ 3 
 
 #define MAX 100
