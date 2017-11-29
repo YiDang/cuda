@@ -78,7 +78,6 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
  	if (row < m && col < p)  
     { 
         int idx = row * p + col;
-        if(idx == 0 ) printf("sc[0] = %2f , sa[0] = %2f , sb[0] = %2f \n", sC[0], sA[0] , sB[0]);
 
     	sC[idx] = 0;
 	    for(int i = 0; i < n; i++)
