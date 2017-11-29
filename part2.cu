@@ -46,7 +46,8 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
 
  	if (row < m && col < p)  
-    { 
+    { 	
+    	#pragma unroll
 	    for(int i = 0; i < n; i++)
         {
 	    	arrayC[row * p + col] += arrayA[row * n + i] * arrayB[i * p + col];
@@ -67,7 +68,7 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned i
     __shared__ float sharedN[BLOCK_SIZE][BLOCK_SIZE];
 
     float v = 0.0;
-
+    #pragma unroll
     for (int i = 0; i < (int)(ceil((float)n/BLOCK_SIZE)); i++)
     {
         if (i*BLOCK_SIZE + tx < n && row < m)
@@ -80,7 +81,7 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned i
         else
             sharedN[ty][tx] = 0.0;
         __syncthreads();
-
+        #pragma unroll
         for(int j = 0; j < BLOCK_SIZE; j++)
             v += sharedM[ty][j] * sharedN[j][tx];
         __syncthreads();
