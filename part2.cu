@@ -12,6 +12,7 @@
 #define P_ 4 
 
 #define BLOCK_SIZE 4
+#define TILE_WIDTH 4;
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -100,11 +101,10 @@ __global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int 
 
     __shared__ float sharedM[TILE_WIDTH][TILE_WIDTH];
     __shared__ float sharedN[TILE_WIDTH][TILE_WIDTH];
-    
+
     float v = 0.0;
 
-    int TILE_WIDTH = BLOCK_SIZE;
-    for (int i = 0; i < (int)(ceil((float)numAColumns/TILE_WIDTH)); i++)
+    for (int i = 0; i < (int)(ceil((float)n/TILE_WIDTH)); i++)
     {
         if (i*TILE_WIDTH + tx < n && row < m)
             sharedM[ty][tx] = arrayA[row*n + i*TILE_WIDTH + tx];
@@ -122,8 +122,8 @@ __global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int 
         __syncthreads();
     }
 
-    if (row < numCRows && col < numCColumns)
-        C[row*numCColumns + col] = v;
+    if (row < m && col < p)
+        arrayC[row*p + col] = v;
 }
 
     
