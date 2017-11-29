@@ -45,12 +45,12 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
 
- 	if (row < m && col < p)  
+ 	if (row < M_ && col < P_)  
     { 	
     	#pragma unroll
-	    for(int i = 0; i < n; i++)
+	    for(int i = 0; i < N_; i++)
         {
-	    	arrayC[row * p + col] += arrayA[row * n + i] * arrayB[i * p + col];
+	    	arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
 	    }
     }
 }
@@ -69,15 +69,15 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned i
 
     float v = 0.0;
     #pragma unroll
-    for (int i = 0; i < (int)(ceil((float)n/BLOCK_SIZE)); i++)
+    for (int i = 0; i < (int)(ceil((float)N_/BLOCK_SIZE)); i++)
     {
-        if (i*BLOCK_SIZE + tx < n && row < m)
-            sharedM[ty][tx] = arrayA[row*n + i*BLOCK_SIZE + tx];
+        if (i*BLOCK_SIZE + tx < N_ && row < M_)
+            sharedM[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
         else
             sharedM[ty][tx] = 0.0;
 
-        if (i*BLOCK_SIZE + ty < n && col < p)
-            sharedN[ty][tx] = arrayB[(i*BLOCK_SIZE + ty)*p + col];
+        if (i*BLOCK_SIZE + ty < N_ && col < P_)
+            sharedN[ty][tx] = arrayB[(i*BLOCK_SIZE + ty)*P_ + col];
         else
             sharedN[ty][tx] = 0.0;
         __syncthreads();
@@ -87,8 +87,8 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned i
         __syncthreads();
     }
 
-    if (row < m && col < p)
-        arrayC[row*p + col] = v;
+    if (row < M_ && col < P_)
+        arrayC[row*P_ + col] = v;
 }
 
     
