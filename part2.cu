@@ -59,21 +59,21 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     }
 
     __syncthreads();
-//    if(row == 0 && col ==0)
-//    {
-//        for(int i = 0; i < m * n; i++)
-//        {
-//            printf("%2f,", sA[i]);
-//        }
-//        printf("\n");
-//
-//        for(int i = 0; i < p * n; i++)
-//        {
-//            printf("%2f,", sB[i]);
-//        }
-//        printf("\n");
-//        
-//    }
+    if(row == 0 && col ==0)
+    {
+        for(int i = 0; i < m * n; i++)
+        {
+            printf("%2f,", sA[i]);
+        }
+        printf("\n");
+
+        for(int i = 0; i < p * n; i++)
+        {
+            printf("%2f,", sB[i]);
+        }
+        printf("\n");
+        
+    }
 
  	if (row < m && col < p)  
     { 
