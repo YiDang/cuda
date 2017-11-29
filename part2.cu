@@ -108,7 +108,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
 
 double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
-	
+	double start = rdtsc();
     cudaError_t res;
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
@@ -127,7 +127,7 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    double start = rdtsc();
+    
     if(method == 0)
     {
     	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
@@ -136,13 +136,14 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     {
     	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
     }
-    double end = rdtsc();
+    
 
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
     cudaFree((void*)device_array_A);
     cudaFree((void*)device_array_B);
     cudaFree((void*)device_array_C);
+    double end = rdtsc();
     return end - start;
 }
 
