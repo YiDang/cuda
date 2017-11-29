@@ -8,8 +8,8 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 #define M_ 2  
-#define N_ 10 
-#define P_ 3 
+#define N_ 4 
+#define P_ 4 
 
 #define MAX 100
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -32,7 +32,7 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   &state);
 
         //a[row][col] = curand_uniform(&state);
-        a[row * cols + col] = 1;
+        a[row * cols + col] = row * cols + col;
     }  
 }
 
