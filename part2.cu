@@ -108,7 +108,7 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
 {
     cudaError_t res;
      
-    //int maxd = std::max(P_ ,std::max(M_ , N_));
+    int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
 
