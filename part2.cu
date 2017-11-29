@@ -231,12 +231,26 @@ int main(int argc, char **argv)
     cudaInit(host_array_B, N_, P_);
 	//show(host_array_B, N_, P_);
 
+	printf("cublas start\n");
+    diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
+    //show(host_array_C_cublas, M_, P_);
+    std::cout << "Time million cycles:\t\t"
+            << static_cast<double>(diff) / (1024 * 1024)
+            << std::endl<< std::endl;
+
     printf("cuda start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
 	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
+    double error = 0;
+    for(int i = 0; i < M_ * N_; i++)
+    {
+    	int tmp = host_array_C_cublas - host_array_C;
+    	error += tmp * tmp;
+    }
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
@@ -245,6 +259,14 @@ int main(int argc, char **argv)
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
+    error = 0;
+    for(int i = 0; i < M_ * N_; i++)
+    {
+    	int tmp = host_array_C_cublas - host_array_C;
+    	error += tmp * tmp;
+    }
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C);
 	//show(host_array_C, M_, P_);
@@ -252,12 +274,17 @@ int main(int argc, char **argv)
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
-    printf("cublas start\n");
-    diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
-    //show(host_array_C_cublas, M_, P_);
-    std::cout << "Time million cycles:\t\t"
-            << static_cast<double>(diff) / (1024 * 1024)
-            << std::endl<< std::endl;
+   	error = 0;
+    for(int i = 0; i < M_ * N_; i++)
+    {
+    	int tmp = host_array_C_cublas - host_array_C;
+    	error += tmp * tmp;
+    }
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+
+
+
+
     
 	free(host_array_A); 
 	free(host_array_B); 
