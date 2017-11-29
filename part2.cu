@@ -98,9 +98,12 @@ __global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int 
     int row = blockDim.y * by + ty;  
     int col = blockDim.x * bx + tx;
 
+    __shared__ float sharedM[TILE_WIDTH][TILE_WIDTH];
+    __shared__ float sharedN[TILE_WIDTH][TILE_WIDTH];
+    
     float v = 0.0;
 
-    int TILE_WIDTH = BLOCK_SIZE
+    int TILE_WIDTH = BLOCK_SIZE;
     for (int i = 0; i < (int)(ceil((float)numAColumns/TILE_WIDTH)); i++)
     {
         if (i*TILE_WIDTH + tx < n && row < m)
