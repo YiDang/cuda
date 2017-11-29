@@ -40,56 +40,17 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
- 	
-    __shared__ float sA[M_*N_];
-    __shared__ float sB[P_*N_];
-    __shared__ float sC[M_*P_];
- 	//copy A
-    if (row < m && col < n) 
-    {
-        int idx = row * n +col;
-        sA[idx] = arrayA[idx]; 
-    }
-
-    //copy B
-    if (row < n && col < p) 
-    {
-        int idx = row * p +col;
-        sB[idx] = arrayB[idx]; 
-    }
-
-    __syncthreads();
-    //if(row == 0 && col ==0)
-    //{
-    //    for(int i = 0; i < m * n; i++)
-    //    {
-    //        printf("%2f,", sA[i]);
-    //    }
-    //    printf("\n");
-//
-    //    for(int i = 0; i < p * n; i++)
-    //    {
-    //        printf("%2f,", sB[i]);
-    //    }
-    //    printf("\n");
-    //    
-    //}
 
  	if (row < m && col < p)  
     { 
-        int idx = row * p + col;
-
-    	sC[idx] = 0;
 	    for(int i = 0; i < n; i++)
         {
-	    	sC[idx] += sA[row * n + i] * sB[i * p + col];
-            //if(idx == 0 ) printf("sc[0] = %2f , sa[0] = %2f , sb[0] = %2f , idxa = %d, idxb = %d\n", sC[idx], sA[row * n + i] , sB[i * p + col], row * n + i, i * p + col);
+	    	arrayC[row * p + col] += arrayA[row * n + i] * arrayB[i * p + col];
 	    }
-        arrayC[idx] = sC[idx];
     }
 }
 
-__global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
+__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
 {
     int bx = blockIdx.x;
     int by = blockIdx.y;
@@ -141,7 +102,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
     cudaFree((void*)device_array_A);
 } 
 
-void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
+void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {
     cudaError_t res;
      
@@ -161,13 +122,20 @@ void cudaMul(float *host_array_A, float *host_array_B, float *host_array_C)
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    //Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
-    Multi<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
-
-    //res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), M_ * N_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
-    //res = cudaMemcpy((void*)(host_array_B), (void*)(device_array_B), N_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
+    if(method == 0)
+    {
+    	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    }
+    else if(method == 1)
+    {
+    	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    }
+    
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
+    cudaFree((void*)device_array_A);
+    cudaFree((void*)device_array_B);
+    cudaFree((void*)device_array_C);
 }
 
 void sequential(float *host_array_A, float *host_array_B, float *host_array_C)
