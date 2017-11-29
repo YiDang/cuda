@@ -12,7 +12,6 @@
 #define P_ 4 
 
 #define BLOCK_SIZE 4
-#define TILE_WIDTH 4
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -99,25 +98,25 @@ __global__ void Multi(float *arrayA, float *arrayB, float *arrayC, unsigned int 
     int row = blockDim.y * by + ty;  
     int col = blockDim.x * bx + tx;
 
-    __shared__ float sharedM[TILE_WIDTH][TILE_WIDTH];
-    __shared__ float sharedN[TILE_WIDTH][TILE_WIDTH];
+    __shared__ float sharedM[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float sharedN[BLOCK_SIZE][BLOCK_SIZE];
 
     float v = 0.0;
 
-    for (int i = 0; i < (int)(ceil((float)n/TILE_WIDTH)); i++)
+    for (int i = 0; i < (int)(ceil((float)n/BLOCK_SIZE)); i++)
     {
-        if (i*TILE_WIDTH + tx < n && row < m)
-            sharedM[ty][tx] = arrayA[row*n + i*TILE_WIDTH + tx];
+        if (i*BLOCK_SIZE + tx < n && row < m)
+            sharedM[ty][tx] = arrayA[row*n + i*BLOCK_SIZE + tx];
         else
             sharedM[ty][tx] = 0.0;
 
-        if (i*TILE_WIDTH + ty < n && col < p)
-            sharedN[ty][tx] = arrayB[(i*TILE_WIDTH + ty)*p + col];
+        if (i*BLOCK_SIZE + ty < n && col < p)
+            sharedN[ty][tx] = arrayB[(i*BLOCK_SIZE + ty)*p + col];
         else
             sharedN[ty][tx] = 0.0;
         __syncthreads();
 
-        for(int j = 0; j < TILE_WIDTH; j++)
+        for(int j = 0; j < BLOCK_SIZE; j++)
             v += sharedM[ty][j] * sharedN[j][tx];
         __syncthreads();
     }
