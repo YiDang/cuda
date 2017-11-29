@@ -106,7 +106,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
     cudaFree((void*)device_array_A);
 } 
 
-int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
+double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
 	
     cudaError_t res;
@@ -127,7 +127,7 @@ int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int m
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    int start = rdtsc();
+    double start = rdtsc();
     if(method == 0)
     {
     	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
@@ -136,7 +136,7 @@ int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int m
     {
     	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
     }
-    int end = rdtsc();
+    double end = rdtsc();
 
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
@@ -146,9 +146,9 @@ int cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int m
     return end - start;
 }
 
-int sequential(float *host_array_A, float *host_array_B, float *host_array_C)
+double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {	
-	int start = rdtsc();
+	double start = rdtsc();
 	for(int i = 0; i < M_; i++)
 	{
 		for(int j = 0; j < P_; j++)
@@ -162,11 +162,11 @@ int sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			}
 		}
 	}
-	int end = rdtsc();
+	double end = rdtsc();
 	return end - start;
 }
 
-int cublas(float *host_array_A, float *host_array_B, float *host_array_C)
+double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
@@ -193,7 +193,7 @@ int cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! CUBLAS initialization error\n";
     }
-    int start = rdtsc();
+    double start = rdtsc();
     // Do the actual multiplication
     status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
                             P_, M_, N_, 
@@ -203,7 +203,7 @@ int cublas(float *host_array_A, float *host_array_B, float *host_array_C)
                             &beta, 
                             thrust::raw_pointer_cast(&dvC[0]), ldc);
 
-    int end = rdtsc();
+    double end = rdtsc();
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! kernel execution error.\n";
     }
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-	int diff = 0;
+	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
