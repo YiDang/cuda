@@ -7,11 +7,11 @@
 #include <cublas_v2.h>
 #include <iostream>
 #include <thrust/device_vector.h>
-#define M_ 2  
-#define N_ 6 
-#define P_ 4 
+#define M_ 1000 
+#define N_ 1000
+#define P_ 1000
 
-#define BLOCK_SIZE 4
+#define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -35,8 +35,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        //a[row][col] = curand_uniform(&state);
-        a[row * cols + col] = row * cols + col;
+        a[row][col] = curand_uniform(&state);
+        //a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -227,34 +227,34 @@ int main(int argc, char **argv)
 
 	int diff = 0;
     cudaInit(host_array_A, M_, N_);
-	show(host_array_A, M_, N_);
+	//show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
-	show(host_array_B, N_, P_);
+	//show(host_array_B, N_, P_);
 
     printf("cuda start\n");
     diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
-	show(host_array_C, M_, P_);
+	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
 	printf("cuda tiled start\n");
     diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
-	show(host_array_C, M_, P_);
+	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("seq start\n");
 	diff = sequential(host_array_A, host_array_B, host_array_C);
-	show(host_array_C, M_, P_);
+	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("cublas start\n");
     diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
-    show(host_array_C_cublas, M_, P_);
+    //show(host_array_C_cublas, M_, P_);
     std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
