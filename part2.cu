@@ -16,6 +16,8 @@
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
+texture<float>  texConst;
+
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -40,7 +42,7 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
     }  
 }
 
-__global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
+__global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
@@ -55,7 +57,30 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC, unsigned i
     }
 }
 
-__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, unsigned int m, unsigned int n, unsigned int p)  
+texture<int> texA;
+texture<float, 2> texB;
+__global__ void MultiplyTexture(float *arrayC)  
+{  
+
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+    int offset = x + y * blockDim.x * gridDim.x;
+
+    if (offset < M_ * P_)
+    {
+        int a = 0, b = 0;
+        int temp_result = 0;
+        for (int i = 0; i < N; i++)
+        {
+            a = tex1Dfetch(texA, y * N + i);
+            b = tex1Dfetch(texB, i * S + x);
+            temp_result += a * b;
+        }
+        arrayC[offset] = temp_result;
+    }
+}
+
+__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC)  
 {
     int bx = blockIdx.x;
     int by = blockIdx.y;
@@ -131,11 +156,17 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     
     if(method == 0)
     {
-    	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    	Multiply<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C);
     }  
     else if(method == 1)
     {
-    	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, M_, N_, P_);
+    	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C);
+    }
+    else if(method == 2)
+    {
+    	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(int));
+		cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(int));
+		Multi_SM<<<dimGrid, dimBlock>>>(device_array_C);
     }
     
 
