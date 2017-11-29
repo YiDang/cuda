@@ -222,7 +222,9 @@ int main(int argc, char **argv)
 {  
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
-	float *host_array_C = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_cuda = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_tile = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
 	double diff = 0;
@@ -239,22 +241,22 @@ int main(int argc, char **argv)
             << std::endl<< std::endl;
 
     printf("cuda start\n");
-    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
-	//show(host_array_C, M_, P_);
+    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_cuda, 0);
+	//show(host_array_C_cuda, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
     double error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C;
+    	int tmp = host_array_C_cublas - host_array_C_cuda;
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
 	printf("cuda tiled start\n");
-    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
-	//show(host_array_C, M_, P_);
+    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
+	//show(host_array_C_tile, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -262,14 +264,14 @@ int main(int argc, char **argv)
     error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C;
+    	int tmp = host_array_C_cublas - host_array_C_tile;
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
-	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C);
-	//show(host_array_C, M_, P_);
+	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
+	//show(host_array_C_seq, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -277,7 +279,7 @@ int main(int argc, char **argv)
    	error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C;
+    	int tmp = host_array_C_cublas - host_array_C_seq;
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
@@ -289,6 +291,10 @@ int main(int argc, char **argv)
 	free(host_array_A); 
 	free(host_array_B); 
 	free(host_array_C); 
+	free(host_array_C_seq); 
+	free(host_array_C_cuda); 
+	free(host_array_C_tile); 
 	free(host_array_C_cublas); 
+
     return 0;  
 }  
