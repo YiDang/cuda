@@ -232,28 +232,28 @@ int main(int argc, char **argv)
 	//show(host_array_B, N_, P_);
 
     printf("cuda start\n");
-    diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
+    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 0);
 	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
 	printf("cuda tiled start\n");
-    diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
+    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C, 1);
 	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("seq start\n");
-	diff = sequential(host_array_A, host_array_B, host_array_C);
+	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C);
 	//show(host_array_C, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("cublas start\n");
-    diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
+    diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
     //show(host_array_C_cublas, M_, P_);
     std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
