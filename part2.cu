@@ -272,15 +272,15 @@ void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
     //float *host_array_C = (float*)calloc(width*height, sizeof(float)); // 内存返回数据   
   
     cudaArray *cuArray;  // CUDA数组  
-    float *device_array_A;     // 显存数据  
+    float *device_array_C;     // 显存数据  
     int row, col;  
 
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();  
     cudaMallocArray(&cuArray, &channelDesc, width, height);  // 申请显存空间  
-    cudaMalloc((void**) &device_array_A, sizeof(float)*width*height);  
+    cudaMalloc((void**) &device_array_C, sizeof(float)*width*height);  
     cudaBindTextureToArray(texRef2D, cuArray); // 将显存数据和纹理绑定  
     cudaMemcpyToArray(cuArray, 0, 0, host_array_A, sizeof(float)*width*height, cudaMemcpyHostToDevice); // 将内存数据拷贝入CUDA数组  
-  
+    int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 threads(width, height);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
@@ -402,7 +402,7 @@ int main(int argc, char **argv)
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
   
-    cuda2D();
+    cuda2D(host_array_A, host_array_B, host_array_C_texture);
 
 
 	free(host_array_A); 
