@@ -255,13 +255,13 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 }
 
 texture<float, 2> texRef2D;
-__global__ void Texture2D(float *dst, int w, int h)  
+__global__ void Texture2D(float *device_array_C, int w, int h)  
 {  
     int x = threadIdx.x + blockIdx.x * blockDim.x;  
     int y = threadIdx.y + blockIdx.y * blockDim.y;  
     int offset = x + y * blockDim.x * gridDim.x;  
   
-    dst[offset] = tex2D(texRef2D, x, y);  
+    device_array_C[offset] = tex2D(texRef2D, x, y);  
 }  
 
 void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
@@ -284,7 +284,8 @@ void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
     dim3 threads(N_, M_);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
-    Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
+    Texture2D<<<1, threads>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
+    //Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数
   
     cudaMemcpy(host_array_C, device_array_C, sizeof(float)*N_*M_, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
     // 打印内存数据  
