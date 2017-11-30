@@ -35,8 +35,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        a[row * cols + col] = curand_uniform(&state);
-        //a[row * cols + col] = row * cols + col;
+        //a[row * cols + col] = curand_uniform(&state);
+        a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -267,38 +267,38 @@ __global__ void Texture2D(float *dst, int w, int h)
 void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
 {
     std::cout << std::endl << "2D texture" << std::endl;  
-    int width = 5, height = 3;  
-    //float *host_array_A = (float*)calloc(width*height, sizeof(float));    // 内存原数据  
-    //float *host_array_C = (float*)calloc(width*height, sizeof(float)); // 内存返回数据   
+    //int N_ = 5, M_ = 3;  
+    //float *host_array_A = (float*)calloc(N_*M_, sizeof(float));    // 内存原数据  
+    //float *host_array_C = (float*)calloc(N_*M_, sizeof(float)); // 内存返回数据   
   
     cudaArray *cuArray;  // CUDA数组  
     float *device_array_C;     // 显存数据  
     int row, col;  
 
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();  
-    cudaMallocArray(&cuArray, &channelDesc, width, height);  // 申请显存空间  
-    cudaMalloc((void**) &device_array_C, sizeof(float)*width*height);  
+    cudaMallocArray(&cuArray, &channelDesc, N_, M_);  // 申请显存空间  
+    cudaMalloc((void**) &device_array_C, sizeof(float)*N_*M_);  
     cudaBindTextureToArray(texRef2D, cuArray); // 将显存数据和纹理绑定  
-    cudaMemcpyToArray(cuArray, 0, 0, host_array_A, sizeof(float)*width*height, cudaMemcpyHostToDevice); // 将内存数据拷贝入CUDA数组  
+    cudaMemcpyToArray(cuArray, 0, 0, host_array_A, sizeof(float)*N_*M_, cudaMemcpyHostToDevice); // 将内存数据拷贝入CUDA数组  
     int maxd = std::max(P_ ,std::max(M_ , N_));
-    dim3 threads(width, height);
+    dim3 threads(N_, M_);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
-    Texture2D<<<dimGrid, dimBlock>>>(device_array_C, width, height);  // 运行2D纹理操作函数  
+    Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
   
-    cudaMemcpy(host_array_C, device_array_C, sizeof(float)*width*height, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
+    cudaMemcpy(host_array_C, device_array_C, sizeof(float)*N_*M_, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
     // 打印内存数据  
     std::cout << " host_array_C:" << std::endl;  
-    for(row = 0; row < height; ++row)  
+    for(row = 0; row < M_; ++row)  
     {  
-        for(col = 0; col < width; ++col)  
-            std::cout << "  " << host_array_C[row*width + col] << " ";  
+        for(col = 0; col < N_; ++col)  
+            std::cout << "  " << host_array_C[row*N_ + col] << " ";  
         std::cout << std::endl;  
     }  
   
     cudaUnbindTexture(texRef2D); // 解绑定  
     cudaFreeArray(cuArray);  // 释放显存空间  
-    cudaFree(device_array_C);  
+    cudaFree(   );  
     //free(host_array_A);  // 释放内存空间  
     //free(host_array_C);  
 }
