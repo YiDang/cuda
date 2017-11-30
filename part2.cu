@@ -325,6 +325,10 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
     	error += tmp * tmp;
+        if(tmp != 0)
+        {
+            printf("texture:%f",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
@@ -340,6 +344,10 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_seq[i];
     	error += tmp * tmp;
+        if(tmp != 0)
+        {
+            printf("seq:%f,",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
   
