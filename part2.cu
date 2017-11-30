@@ -164,6 +164,7 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     }
     else if(method == 2)
     {
+    	cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
     	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(int));
 		cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(int));
 		MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
