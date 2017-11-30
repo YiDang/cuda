@@ -253,6 +253,63 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 
     return end - start;
 }
+
+texture<float, 2> texRef2D;
+__global__ void Texture2D(float *dst, int w, int h)  
+{  
+    int x = threadIdx.x + blockIdx.x * blockDim.x;  
+    int y = threadIdx.y + blockIdx.y * blockDim.y;  
+    int offset = x + y * blockDim.x * gridDim.x;  
+  
+    dst[offset] = tex2D(texRef2D, x, y);  
+}  
+
+void cuda2D()
+{
+    std::cout << std::endl << "2D texture" << std::endl;  
+    int width = 5, height = 3;  
+    float *host2D = (float*)calloc(width*height, sizeof(float));    // 内存原数据  
+    float *hostRet2D = (float*)calloc(width*height, sizeof(float)); // 内存返回数据   
+  
+    cudaArray *cuArray;  // CUDA数组  
+    float *devRet2D;     // 显存数据  
+    int row, col;  
+    std::cout << " host2D:" << std::endl;  
+    for(row = 0; row < height; ++row)  // 初始化内存原数据  
+    {  
+        for(col = 0; col < width; ++col)  
+        {  
+            host2D[row*width + col] = row + col;  
+            std::cout << "  " << host2D[row*width + col] << " ";  
+        }  
+        std::cout << std::endl;  
+    }  
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();  
+    cutilSafeCall( cudaMallocArray(&cuArray, &channelDesc, width, height));  // 申请显存空间  
+    cutilSafeCall( cudaMalloc((void**) &devRet2D, sizeof(float)*width*height));  
+    cutilSafeCall( cudaBindTextureToArray(texRef2D, cuArray)); // 将显存数据和纹理绑定  
+    cutilSafeCall( cudaMemcpyToArray(cuArray, 0, 0, host2D, sizeof(float)*width*height, cudaMemcpyHostToDevice)); // 将内存数据拷贝入CUDA数组  
+  
+    dim3 threads(width, height);  
+    Texture2D<<<1, threads>>>(devRet2D, width, height);  // 运行2D纹理操作函数  
+  
+    cutilSafeCall( cudaMemcpy(hostRet2D, devRet2D, sizeof(float)*width*height, cudaMemcpyDeviceToHost)); // 将显存数据拷贝入内存  
+    // 打印内存数据  
+    std::cout << " hostRet2D:" << std::endl;  
+    for(row = 0; row < height; ++row)  
+    {  
+        for(col = 0; col < width; ++col)  
+            std::cout << "  " << hostRet2D[row*width + col] << " ";  
+        std::cout << std::endl;  
+    }  
+  
+    cutilSafeCall( cudaUnbindTexture(texRef2D)); // 解绑定  
+    cutilSafeCall( cudaFreeArray(cuArray));  // 释放显存空间  
+    cutilSafeCall( cudaFree(devRet2D));  
+    free(host2D);  // 释放内存空间  
+    free(hostRet2D);  
+}
+
 int main(int argc, char **argv)  
 {  
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
@@ -352,6 +409,9 @@ int main(int argc, char **argv)
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
   
+    cuda2D();
+
+
 	free(host_array_A); 
 	free(host_array_B);  
 	free(host_array_C_seq); 
