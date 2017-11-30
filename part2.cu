@@ -285,15 +285,15 @@ void cuda2D()
         std::cout << std::endl;  
     }  
     cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();  
-    cutilSafeCall( cudaMallocArray(&cuArray, &channelDesc, width, height));  // 申请显存空间  
-    cutilSafeCall( cudaMalloc((void**) &devRet2D, sizeof(float)*width*height));  
-    cutilSafeCall( cudaBindTextureToArray(texRef2D, cuArray)); // 将显存数据和纹理绑定  
-    cutilSafeCall( cudaMemcpyToArray(cuArray, 0, 0, host2D, sizeof(float)*width*height, cudaMemcpyHostToDevice)); // 将内存数据拷贝入CUDA数组  
+    cudaMallocArray(&cuArray, &channelDesc, width, height);  // 申请显存空间  
+    cudaMalloc((void**) &devRet2D, sizeof(float)*width*height);  
+    cudaBindTextureToArray(texRef2D, cuArray); // 将显存数据和纹理绑定  
+    cudaMemcpyToArray(cuArray, 0, 0, host2D, sizeof(float)*width*height, cudaMemcpyHostToDevice); // 将内存数据拷贝入CUDA数组  
   
     dim3 threads(width, height);  
     Texture2D<<<1, threads>>>(devRet2D, width, height);  // 运行2D纹理操作函数  
   
-    cutilSafeCall( cudaMemcpy(hostRet2D, devRet2D, sizeof(float)*width*height, cudaMemcpyDeviceToHost)); // 将显存数据拷贝入内存  
+    cudaMemcpy(hostRet2D, devRet2D, sizeof(float)*width*height, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
     // 打印内存数据  
     std::cout << " hostRet2D:" << std::endl;  
     for(row = 0; row < height; ++row)  
@@ -303,9 +303,9 @@ void cuda2D()
         std::cout << std::endl;  
     }  
   
-    cutilSafeCall( cudaUnbindTexture(texRef2D)); // 解绑定  
-    cutilSafeCall( cudaFreeArray(cuArray));  // 释放显存空间  
-    cutilSafeCall( cudaFree(devRet2D));  
+    cudaUnbindTexture(texRef2D); // 解绑定  
+    cudaFreeArray(cuArray);  // 释放显存空间  
+    cudaFree(devRet2D);  
     free(host2D);  // 释放内存空间  
     free(hostRet2D);  
 }
