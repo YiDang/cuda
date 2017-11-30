@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
-	//show(host_array_C_seq, M_, P_);
+	show(host_array_C_seq, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
