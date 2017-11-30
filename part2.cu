@@ -136,7 +136,7 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
-    dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
+    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
     res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(float));CHECK(res)
@@ -283,9 +283,9 @@ void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
     int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 threads(N_, M_);
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
-    dim3 dimGrid((maxd+ dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
-    Texture2D<<<1, threads>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
-    //Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数
+    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (N_ + dimBlock.y-1)/(dimBlock.y));
+    //Texture2D<<<1, threads>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
+    Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数
   
     cudaMemcpy(host_array_C, device_array_C, sizeof(float)*N_*M_, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
     // 打印内存数据  
