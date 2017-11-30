@@ -200,7 +200,7 @@ double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
-    double start = rdtsc();
+
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
 	thrust::host_vector<float> hvC(M_ * P_);
@@ -215,7 +215,7 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 	thrust::device_vector<float> dvA = hvA;
 	thrust::device_vector<float> dvB = hvB;
 	thrust::device_vector<float> dvC(M_ * P_);
-
+    double start = rdtsc();
     int lda=N_ ,ldb=P_, ldc=P_;
     const float alpha = 1.0f;
     const float beta = 0.0f;
