@@ -16,8 +16,6 @@
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
 
-texture<float>  texConst;
-
 uint64_t rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -69,7 +67,7 @@ __global__ void MultiplyTexture(float *arrayC)
     if (offset < M_ * P_)
     {
         int a = 0, b = 0;
-        int temp_result = 0;
+        float temp_result = 0;
         for (int i = 0; i < N_; i++)
         {
             a = tex1Dfetch(texA, y * N_ + i);
