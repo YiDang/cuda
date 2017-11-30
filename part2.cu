@@ -282,7 +282,7 @@ int main(int argc, char **argv)
     double error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C_cuda;
+    	double tmp = host_array_C_cublas[i] - host_array_C_cuda[i];
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
@@ -297,13 +297,13 @@ int main(int argc, char **argv)
     error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C_tile;
+    	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
-    printf("cuda tiled start\n");
-    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 2);
+    printf("cuda textured start\n");
+    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
 	//show(host_array_C_tile, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
     error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C_tile;
+    	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
    	error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	int tmp = host_array_C_cublas - host_array_C_seq;
+    	double tmp = host_array_C_cublas[i] - host_array_C_seq[i];
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
