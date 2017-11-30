@@ -200,6 +200,7 @@ double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 
 double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
+    double start = rdtsc();
 	thrust::host_vector<float> hvA(M_ * N_);
 	thrust::host_vector<float> hvB(N_ * P_);
 	thrust::host_vector<float> hvC(M_ * P_);
@@ -225,7 +226,7 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! CUBLAS initialization error\n";
     }
-    double start = rdtsc();
+    
     // Do the actual multiplication
     status = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, 
                             P_, M_, N_, 
