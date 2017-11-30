@@ -70,10 +70,10 @@ __global__ void MultiplyTexture(float *arrayC)
     {
         int a = 0, b = 0;
         int temp_result = 0;
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < N_; i++)
         {
-            a = tex1Dfetch(texA, y * N + i);
-            b = tex1Dfetch(texB, i * S + x);
+            a = tex1Dfetch(texA, y * N_ + i);
+            b = tex1Dfetch(texB, i * P_ + x);
             temp_result += a * b;
         }
         arrayC[offset] = temp_result;
