@@ -7,9 +7,9 @@
 #include <cublas_v2.h>
 #include <iostream>
 #include <thrust/device_vector.h>
-#define M_ 1000 
-#define N_ 1000
-#define P_ 1000
+#define M_ 10 
+#define N_ 10
+#define P_ 10
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -271,14 +271,14 @@ int main(int argc, char **argv)
 
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
-    //show(host_array_C_cublas, M_, P_);
+    show(host_array_C_cublas, M_, P_);
     std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("cuda start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_cuda, 0);
-	//show(host_array_C_cuda, M_, P_);
+	show(host_array_C_cuda, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
-	//show(host_array_C_tile, M_, P_);
+	show(host_array_C_tile, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
-	//show(host_array_C_texture, M_, P_);
+	show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
