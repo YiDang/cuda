@@ -263,6 +263,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
+    boolean showma = TRUE, showdif = TRUE;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -271,14 +272,14 @@ int main(int argc, char **argv)
 
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
-    show(host_array_C_cublas, M_, P_);
+    if(showma) show(host_array_C_cublas, M_, P_);
     std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
     printf("cuda start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_cuda, 0);
-	show(host_array_C_cuda, M_, P_);
+	if(showma) show(host_array_C_cuda, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -287,7 +288,7 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_cuda[i];
     	error += tmp * tmp;
-        if(tmp != 0)
+        if(tmp != 0 && showdif)
         {
             printf("cuda:%f",tmp);
         }
@@ -296,7 +297,7 @@ int main(int argc, char **argv)
 
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
-	show(host_array_C_tile, M_, P_);
+	if(showma) show(host_array_C_tile, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -306,7 +307,7 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
     	error += tmp * tmp;
-        if(tmp != 0)
+        if(tmp != 0 && showdif)
         {
             printf("tile:%f",tmp);
         }
@@ -315,7 +316,7 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
-	show(host_array_C_texture, M_, P_);
+	if(showma) show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -325,12 +326,16 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
     	error += tmp * tmp;
+        if(tmp != 0 && showdif)
+        {
+            printf("texture:%f",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
-	show(host_array_C_seq, M_, P_);
+	if(showma) show(host_array_C_seq, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -340,6 +345,10 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_seq[i];
     	error += tmp * tmp;
+        if(tmp != 0 && showdif)
+        {
+            printf("seq:%f,",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
   
