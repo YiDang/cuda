@@ -35,8 +35,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        //a[row * cols + col] = curand_uniform(&state);
-        a[row * cols + col] = row * cols + col;
+        a[row * cols + col] = curand_uniform(&state);
+        //a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 1, showdif = 1;
+    int showma = 1, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
