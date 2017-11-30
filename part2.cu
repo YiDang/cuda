@@ -298,7 +298,7 @@ void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
   
     cudaUnbindTexture(texRef2D); // 解绑定  
     cudaFreeArray(cuArray);  // 释放显存空间  
-    cudaFree(device_array_A);  
+    cudaFree(device_array_C);  
     //free(host_array_A);  // 释放内存空间  
     //free(host_array_C);  
 }
