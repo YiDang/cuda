@@ -254,62 +254,6 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
     return end - start;
 }
 
-texture<float, 2> texRef2D;
-__global__ void Texture2D(float *device_array_C, int w, int h)  
-{  
-    int x = threadIdx.x + blockIdx.x * blockDim.x;  
-    int y = threadIdx.y + blockIdx.y * blockDim.y;  
-    int offset = x + y * blockDim.x * gridDim.x;  
-  
-    device_array_C[offset] = tex2D(texRef2D, x, y);  
-}  
-
-void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
-{
-    std::cout << std::endl << "2D texture" << std::endl;  
-    //int N_ = 5, M_ = 3;  
-    //float *host_array_A = (float*)calloc(N_*M_, sizeof(float));    // 内存原数据  
-    //float *host_array_C = (float*)calloc(N_*M_, sizeof(float)); // 内存返回数据   
-  
-    cudaArray *cuArray;  // CUDA数组  
-    float *device_array_C;     // 显存数据  
-    int row, col;  
-
-    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();  
-    cudaMallocArray(&cuArray, &channelDesc, N_, M_);  // 申请显存空间  
-    cudaMalloc((void**) &device_array_C, sizeof(float)*N_*M_);  
-    cudaBindTextureToArray(texRef2D, cuArray); // 将显存数据和纹理绑定  
-    cudaMemcpyToArray(cuArray, 0, 0, host_array_A, sizeof(float)*N_*M_, cudaMemcpyHostToDevice); // 将内存数据拷贝入CUDA数组  
-    int maxd = std::max(P_ ,std::max(M_ , N_));
-    dim3 threads(N_, M_);
-    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
-    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (N_ + dimBlock.y-1)/(dimBlock.y));
-    //Texture2D<<<1, threads>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数  
-    Texture2D<<<dimGrid, dimBlock>>>(device_array_C, N_, M_);  // 运行2D纹理操作函数
-  
-    cudaMemcpy(host_array_C, device_array_C, sizeof(float)*N_*M_, cudaMemcpyDeviceToHost); // 将显存数据拷贝入内存  
-    // 打印内存数据  
-    std::cout << " host_array_C:" << std::endl;  
-    for(row = 0; row < M_; ++row)  
-    {  
-        for(col = 0; col < N_; ++col)  
-            std::cout << "  " << host_array_A[row*N_ + col] << " ";  
-        std::cout << std::endl;  
-    } 
-    for(row = 0; row < M_; ++row)  
-    {  
-        for(col = 0; col < N_; ++col)  
-            std::cout << "  " << host_array_C[row*N_ + col] << " ";  
-        std::cout << std::endl;  
-    }  
-  
-    cudaUnbindTexture(texRef2D); // 解绑定  
-    cudaFreeArray(cuArray);  // 释放显存空间  
-    cudaFree(device_array_C);  
-    //free(host_array_A);  // 释放内存空间  
-    //free(host_array_C);  
-}
-
 int main(int argc, char **argv)  
 {  
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
@@ -320,7 +264,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 0;
+    int showma = 1, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -408,9 +352,6 @@ int main(int argc, char **argv)
         }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-  
-    cuda2D(host_array_A, host_array_B, host_array_C_texture);
-
 
 	free(host_array_A); 
 	free(host_array_B);  
