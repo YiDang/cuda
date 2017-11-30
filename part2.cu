@@ -287,6 +287,10 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_cuda[i];
     	error += tmp * tmp;
+        if(tmp != 0)
+        {
+            printf("cuda:%f",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
@@ -302,6 +306,10 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
     	error += tmp * tmp;
+        if(tmp != 0)
+        {
+            printf("tile:%f",tmp);
+        }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
