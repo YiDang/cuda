@@ -292,6 +292,12 @@ void cuda2D(float* host_array_A, float* host_array_B, float* host_array_C)
     for(row = 0; row < M_; ++row)  
     {  
         for(col = 0; col < N_; ++col)  
+            std::cout << "  " << host_array_A[row*N_ + col] << " ";  
+        std::cout << std::endl;  
+    } 
+    for(row = 0; row < M_; ++row)  
+    {  
+        for(col = 0; col < N_; ++col)  
             std::cout << "  " << host_array_C[row*N_ + col] << " ";  
         std::cout << std::endl;  
     }  
