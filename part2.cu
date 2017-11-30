@@ -55,8 +55,8 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
     }
 }
 
-texture<float> texA;
-texture<float, 2> texB;
+texture<float, 1, cudaReadModeElementType> texA;
+texture<float, 1, cudaReadModeElementType> texB;
 __global__ void MultiplyTexture(float *arrayC)  
 {  
 
