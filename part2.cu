@@ -307,7 +307,7 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
-	//show(host_array_C_tile, M_, P_);
+	//show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -315,7 +315,7 @@ int main(int argc, char **argv)
     error = 0;
     for(int i = 0; i < M_ * N_; i++)
     {
-    	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
+    	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
     	error += tmp * tmp;
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
