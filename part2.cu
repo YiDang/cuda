@@ -66,16 +66,16 @@ __global__ void MultiplyTexture(float *arrayC)
     int y = threadIdx.y + blockIdx.y * blockDim.y;
     int offset = x + y * blockDim.x * gridDim.x;
 
-    if (offset < M_ * P_)
+    if (x < M_ && y < P_)
     {
         float a = 0, b = 0;
         float temp_result = 0;
         for (int i = 0; i < N_; i++)
         {
-            a = tex1Dfetch(texA, y * M_ + i);
+            a = tex1Dfetch(tex_A, y, x);
             //a = tex2D<float>(texA, y, x);
             
-            printf("idx:%d,%d,v:%f\n",x,y,a);
+            printf("idx:%d,%d,v:%f\n",y,x,a);
             //b = tex1Dfetch(texB, i * P_ + x);
             temp_result += a * b;
         }
@@ -164,13 +164,13 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     {
     	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C);
     }
-    else if(method == 2)
-    {
-    	cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
-    	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
-		cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
-		MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
-    }
+    //else if(method == 2)
+    //{
+    //	cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
+    //	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
+	//	cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
+	//	MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
+    //}
     cudaThreadSynchronize();
     double end = rdtsc();
 
@@ -183,31 +183,48 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     return end - start;
 }
 
-double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C, int method)
+texture<float,2,cudaReadModeElementType> tex_A;
+texture<float,2,cudaReadModeElementType> tex_B;
+double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 {   
     cudaError_t res;
      
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
 
-    float (*d_a)[N_]
+    float (*d_a)[N_];
+    float (*tmp)[N_];
     for(int i = 0; i < M_ ; i++)
     {
         for(int j = 0; j < N_; j++)
         {
-     //       d_a[i][j] = host_array_A[i * N_ + j];
+            tmp[i][j] = host_array_A[i * N_ + j];
+            print("%d ",tmp[i][j]);
         }
+        print("\n");
     }
     size_t pitch;
     cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
+
+    cudaMemcpy2D(d_a,             // device destination                                   
+                             pitch,           // device pitch (calculated above)                      
+                             tmp,               // src on host                                          
+                             N_*sizeof(float), // pitch on src (no padding so just width of row)       
+                             N_*sizeof(float), // width of data in bytes                               
+                             M_,            // height of data                                       
+                             cudaMemcpyHostToDevice) ;
+    cudaBindTexture2D(NULL, tex_A, d_w, tex_A.channelDesc, N_, M_, pitch) ;
+
+    tex_A.normalized = false;  // don't use normalized values                                           
+    tex_A.filterMode = cudaFilterModeLinear;
+    tex_A.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
+    tex_A.addressMode[1] = cudaAddressModeClamp;
+
     //..........................
 
     double start = rdtsc();
 
-    //cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
-    //cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
-    //cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
-    //MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
+    MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
 
     //cudaThreadSynchronize();
     double end = rdtsc();
