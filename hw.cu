@@ -1,46 +1,38 @@
-// This is the REAL "hello world" for CUDA!
-// It takes the string "Hello ", prints it, then passes it to CUDA with an array
-// of offsets. Then the offsets are added in parallel to produce the string "World!"
-// By Ingemar Ragnemalm 2010
- 
+#include <cuda.h>
 #include <stdio.h>
- 
-const int N = 16; 
-const int blocksize = 16; 
- 
-__global__ 
-void hello(char *a, int *b) 
-{
-	a[threadIdx.x] += b[threadIdx.x];
+#include <stdlib.h>
+
+#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
+
+inline static void __checkCudaErrors( cudaError err, const char *file, const int line )     {
+
+    if( cudaSuccess != err) {
+        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n", file, line, (int)err, cudaGetErrorString( err ) );
+        exit(-1);
+    }
 }
- 
-int main()
-{
-	int  IE2D[4][5];
-	for(int i=0;i<4;i++)
-	{
-		for(int j=0;j<5;j++)
-		IE2D[i][j] = i*5+j;
-	}
-	texture<int, 2>  texIE2D;
 
-	int *dev_IE2D;
-	cudaChannelFormatDesc desc = cudaCreateChannelDesc<int>();
+texture<int, cudaTextureType2D> tex_transition;
 
-	cudaMallocPitch(  (void**) &dev_IE2D,   &pitch,   sizeof(int) * 5,   4  );
+int main ( void ) {
 
-	cudaBindTexture2D( NULL,   texIE2D,   dev_IE2D,   desc,   5,   4,   pitch );
+    int m = 8, p_size = 100, alphabet = 20;
 
-	for(int row = 0; row < 4; ++row) 
-        cudaMemcpy(dev_IE2D[row*(pitch/sizeof(int))],   &IE2D[row][0],   sizeof(int)*5,   cudaMemcpyHostToDevice);
-	
-	dim3 dimBlock( blocksize, 16 );
-	dim3 dimGrid( 1, 1 );
-	hello<<<dimGrid, dimBlock>>>(ad, bd);
-	cudaMemcpy( a, ad, csize, cudaMemcpyDeviceToHost ); 
-	cudaFree( ad );
-	cudaFree( bd );
-	
-	printf("%s\n", a);
-	return EXIT_SUCCESS;
+    size_t pitch;
+
+    int *transition = ( int * ) malloc ( ( m * p_size + 1 ) * alphabet * sizeof ( int ) );
+    memset ( transition, -1, ( m * p_size + 1 ) * alphabet * sizeof ( int ) );
+
+    int *d_transition;
+
+    checkCudaErrors ( cudaMallocPitch ( &d_transition, &pitch, alphabet * sizeof ( int ), ( m * p_size + 1 ) ) );
+
+    checkCudaErrors ( cudaMemcpy2D ( d_transition, pitch, transition, alphabet * sizeof ( int ), alphabet * sizeof ( int ), ( m * p_size + 1 ), cudaMemcpyHostToDevice ) );
+
+    cudaChannelFormatDesc desc = cudaCreateChannelDesc<int>();
+    checkCudaErrors ( cudaBindTexture2D ( 0, tex_transition, d_transition, desc, alphabet * sizeof ( int ), ( m * p_size + 1 ), pitch ) );
+
+    cudaFree ( d_transition );
+
+    return 0;
 }
