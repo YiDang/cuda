@@ -16,22 +16,25 @@ void hello(char *a, int *b)
  
 int main()
 {
-	char a[N] = "Hello \0\0\0\0\0\0";
-	int b[N] = {15, 10, 6, 0, -11, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
- 
-	char *ad;
-	int *bd;
-	const int csize = N*sizeof(char);
-	const int isize = N*sizeof(int);
- 
-	printf("%s", a);
- 
-	cudaMalloc( (void**)&ad, csize ); 
-	cudaMalloc( (void**)&bd, isize ); 
-	cudaMemcpy( ad, a, csize, cudaMemcpyHostToDevice ); 
-	cudaMemcpy( bd, b, isize, cudaMemcpyHostToDevice ); 
+	int  IE2D[4][5];
+	for(int i=0;i<4;i++)
+	{
+		for(int j=0;j<5;j++)
+		IE2D[i][j] = i*5+j;
+	}
+	texture<int, 2>  texIE2D;
+
+	int *dev_IE2D;
+	cudaChannelFormatDesc desc = cudaCreateChannelDesc<int>();
+
+	cudaMallocPitch(  (void**) &dev_IE2D,   &pitch,   sizeof(int) * 5,   4  );
+
+	cudaBindTexture2D( NULL,   texIE2D,   dev_IE2D,   desc,   5,   4,   pitch );
+
+	for(int row = 0; row < 4; ++row) 
+        cudaMemcpy(dev_IE2D[row*(pitch/sizeof(int))],   &IE2D[row][0],   sizeof(int)*5,   cudaMemcpyHostToDevice);
 	
-	dim3 dimBlock( blocksize, 1 );
+	dim3 dimBlock( blocksize, 16 );
 	dim3 dimGrid( 1, 1 );
 	hello<<<dimGrid, dimBlock>>>(ad, bd);
 	cudaMemcpy( a, ad, csize, cudaMemcpyDeviceToHost ); 
