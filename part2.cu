@@ -361,22 +361,22 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
-	 show(host_array_C_texture, M_, P_);
+	 //show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
-    error = 0;
-    for(int i = 0; i < M_ * N_; i++)
-    {
-    	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
-    	error += tmp * tmp;
-        if(tmp != 0 && showdif)
-        {
-            printf("texture:%f",tmp);
-        }
-    }
-    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    //error = 0;
+    //for(int i = 0; i < M_ * N_; i++)
+    //{
+    //	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
+    //	error += tmp * tmp;
+    //    if(tmp != 0 && showdif)
+    //    {
+    //        printf("texture:%f",tmp);
+    //    }
+    //}
+    //if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
