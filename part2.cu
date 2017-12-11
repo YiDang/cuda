@@ -7,6 +7,7 @@
 #include <cublas_v2.h>
 #include <iostream>
 #include <thrust/device_vector.h>
+
 #define M_ 1000
 #define N_ 1000
 #define P_ 1000
