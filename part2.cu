@@ -49,10 +49,29 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
  	if (row < M_ && col < P_)  
     { 	
     	#pragma unroll
-	    for(int i = 0; i < N_; i++)
+        int i;
+	    for(i = 0; i < N_ - 1; i += 2)
         {
-	    	arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+	    	float tmp1 = arrayA[row * N_ + i] * arrayB[i * P_ + col];
+            float tmp2 = arrayA[row * N_ + i + 1] * arrayB[(i + 1) * P_ + col];
+            arrayC[row * P_ + col] += tmp1 + tmp2;
 	    }
+        if (i == N_ -1) arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+
+    }
+}
+__global__ void Multiply_old(float *arrayA, float *arrayB, float *arrayC)  
+{  
+    unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
+    unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
+
+    if (row < M_ && col < P_)  
+    {   
+        #pragma unroll
+        for(int i = 0; i < N_; i++)
+        {
+            arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+        }
     }
 }
 
