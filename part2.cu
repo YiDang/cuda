@@ -190,7 +190,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C,
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
 
-    float[M_][N_] *d_a;
+    float (*d_a)[N_]
     for(int i = 0; i < M_ ; i++)
     {
         for(int j = 0; j < N_; j++)
