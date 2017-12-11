@@ -1,38 +1,86 @@
-#include <cuda.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <iostream>
+#include "handle.cu"
 
-#define checkCudaErrors(err)           __checkCudaErrors (err, __FILE__, __LINE__)
+using namespace std;
 
-inline static void __checkCudaErrors( cudaError err, const char *file, const int line )     {
+texture<float,2,cudaReadModeElementType> tex_w;
 
-    if( cudaSuccess != err) {
-        fprintf(stderr, "%s(%i) : CUDA Runtime API error %d: %s.\n", file, line, (int)err, cudaGetErrorString( err ) );
-        exit(-1);
+__global__ void kernel(int imax, float (*f)[3])
+{
+  int i = threadIdx.x;
+  int j = threadIdx.y;
+  // width = 3, height = imax                                                                         
+  // but we have imax threads in x, 3 in y                                                            
+  // therefore height corresponds to x threads (i)                                                    
+  // and width corresponds to y threads (j)                                                           
+  if(i<imax)
+    {
+      // linear filtering looks between indices                                                       
+      f[i][j] = tex2D(tex_w, j+0.5f, i+0.5f);
     }
 }
 
-texture<int, cudaTextureType2D> tex_transition;
+void print_to_stdio(int imax, float (*w)[3])
+{
+  for (int i=0; i<imax; i++)
+    {
+      printf("%2d  %3.3f  %3.3f  %3.3f\n",i, w[i][0], w[i][1], w[i][2]);
+    }
+  printf("\n");
+}
 
-int main ( void ) {
+int main(void)
+{
+  int imax = 8;
+  float (*w)[3];
+  float (*d_f)[3], *d_w;
+  dim3 grid(imax,3);
 
-    int m = 8, p_size = 100, alphabet = 20;
+  w = (float (*)[3])malloc(imax*3*sizeof(float));
 
-    size_t pitch;
+  for(int i=0; i<imax; i++)
+    {
+      for(int j=0; j<3; j++)
+        {
+          w[i][j] = i + 0.01f*j;
+        }
+    }
 
-    int *transition = ( int * ) malloc ( ( m * p_size + 1 ) * alphabet * sizeof ( int ) );
-    memset ( transition, -1, ( m * p_size + 1 ) * alphabet * sizeof ( int ) );
+  print_to_stdio(imax, w);
 
-    int *d_transition;
+  size_t pitch;
+  HANDLE_ERROR( cudaMallocPitch((void**)&d_w, &pitch, 3*sizeof(float), imax) );
 
-    checkCudaErrors ( cudaMallocPitch ( &d_transition, &pitch, alphabet * sizeof ( int ), ( m * p_size + 1 ) ) );
+  HANDLE_ERROR( cudaMemcpy2D(d_w,             // device destination                                   
+                             pitch,           // device pitch (calculated above)                      
+                             w,               // src on host                                          
+                             3*sizeof(float), // pitch on src (no padding so just width of row)       
+                             3*sizeof(float), // width of data in bytes                               
+                             imax,            // height of data                                       
+                             cudaMemcpyHostToDevice) );
 
-    checkCudaErrors ( cudaMemcpy2D ( d_transition, pitch, transition, alphabet * sizeof ( int ), alphabet * sizeof ( int ), ( m * p_size + 1 ), cudaMemcpyHostToDevice ) );
+  HANDLE_ERROR( cudaBindTexture2D(NULL, tex_w, d_w, tex_w.channelDesc, 3, imax, pitch) );
 
-    cudaChannelFormatDesc desc = cudaCreateChannelDesc<int>();
-    checkCudaErrors ( cudaBindTexture2D ( 0, tex_transition, d_transition, desc, alphabet * sizeof ( int ), ( m * p_size + 1 ), pitch ) );
+  tex_w.normalized = false;  // don't use normalized values                                           
+  tex_w.filterMode = cudaFilterModeLinear;
+  tex_w.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
+  tex_w.addressMode[1] = cudaAddressModeClamp;
 
-    cudaFree ( d_transition );
+  // d_f will have result array                                                                       
+  cudaMalloc( &d_f, 3*imax*sizeof(float) );
 
-    return 0;
+  // just use threads for simplicity                                                                  
+  kernel<<<1,grid>>>(imax, d_f);
+
+  cudaMemcpy(w, d_f, 3*imax*sizeof(float), cudaMemcpyDeviceToHost);
+
+  cudaUnbindTexture(tex_w);
+  cudaFree(d_w);
+  cudaFree(d_f);
+
+  print_to_stdio(imax, w);
+
+  free(w);
+  return 0;
 }
