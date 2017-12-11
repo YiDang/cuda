@@ -73,7 +73,7 @@ __global__ void MultiplyTexture(float *arrayC)
         for (int i = 0; i < N_; i++)
         {
             //a = tex1Dfetch(texA, y * N_ + i);
-            a = tex2D<float>(texA, x, y)
+            a = tex2D<float>(texA, y, x);
             std::cout<<"idx:"<<y * N_ + i<<"v:"<<a<<std::endl;
             printf("idx:%d,%d,v:%f\n",x,y,a);
             //b = tex1Dfetch(texB, i * P_ + x);
