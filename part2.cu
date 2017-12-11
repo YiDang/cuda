@@ -57,8 +57,10 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
 }
 
 
-texture<float, 1, cudaReadModeElementType> texA;
-texture<float, 1, cudaReadModeElementType> texB;
+//texture<float, 1, cudaReadModeElementType> texA;
+//texture<float, 1, cudaReadModeElementType> texB;
+texture<float,2,cudaReadModeElementType> tex_A;
+texture<float,2,cudaReadModeElementType> tex_B;
 __global__ void MultiplyTexture(float *arrayC)  
 {  
 
@@ -72,7 +74,7 @@ __global__ void MultiplyTexture(float *arrayC)
         float temp_result = 0;
         for (int i = 0; i < N_; i++)
         {
-            a = tex1Dfetch(tex_A, y, x);
+            a = tex2D(tex_A, y, x);
             //a = tex2D<float>(texA, y, x);
             
             printf("idx:%d,%d,v:%f\n",y,x,a);
@@ -183,12 +185,14 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     return end - start;
 }
 
-texture<float,2,cudaReadModeElementType> tex_A;
-texture<float,2,cudaReadModeElementType> tex_B;
+
 double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 {   
     cudaError_t res;
      
+    float *device_array_C = NULL;
+    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
+
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
 
@@ -200,9 +204,9 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
         for(int j = 0; j < N_; j++)
         {
             tmp[i][j] = host_array_A[i * N_ + j];
-            print("%d ",tmp[i][j]);
+            printf("%d ",tmp[i][j]);
         }
-        print("\n");
+        printf("\n");
     }
     size_t pitch;
     cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
@@ -214,27 +218,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
                              N_*sizeof(float), // width of data in bytes                               
                              M_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
-    cudaBindTexture2D(NULL, tex_A, d_w, tex_A.channelDesc, N_, M_, pitch) ;
-
-    tex_A.normalized = false;  // don't use normalized values                                           
-    tex_A.filterMode = cudaFilterModeLinear;
-    tex_A.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
-    tex_A.addressMode[1] = cudaAddressModeClamp;
-
-    //..........................
-
-    double start = rdtsc();
-
-    MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
-
-    //cudaThreadSynchronize();
-    double end = rdtsc();
-
-    //res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
-
-    //cudaFree((void*)device_array_A);
-    
-    return end - start;
+    cudaBindTexture2D(NULL, tex_A, d_a, tex_A.channelDesc, N_, M_, pitch) ;
 }
 
 double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
@@ -375,7 +359,7 @@ int main(int argc, char **argv)
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("cuda textured start\n");
-    diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture, 2);
+    diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
 	 show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
