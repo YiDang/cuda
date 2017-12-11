@@ -50,7 +50,7 @@ int main(void)
   print_to_stdio(imax, w);
 
   size_t pitch;
-	cudaMallocPitch((void**)&d_w, &pitch, 3*sizeof(float), imax) 
+	cudaMallocPitch((void**)&d_w, &pitch, 3*sizeof(float), imax);
 
    cudaMemcpy2D(d_w,             // device destination                                   
                              pitch,           // device pitch (calculated above)                      
