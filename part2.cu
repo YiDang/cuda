@@ -74,7 +74,7 @@ __global__ void MultiplyTexture(float *arrayC)
         {
             a = tex1Dfetch(texA, y * M_ + i);
             //a = tex2D<float>(texA, y, x);
-            std::cout<<"idx:"<<y * N_ + i<<"v:"<<a<<std::endl;
+            
             printf("idx:%d,%d,v:%f\n",x,y,a);
             //b = tex1Dfetch(texB, i * P_ + x);
             temp_result += a * b;
@@ -195,7 +195,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C,
     {
         for(int j = 0; j < N_; j++)
         {
-            d_a[i][j] = host_array_A[i * N_ + j];
+     //       d_a[i][j] = host_array_A[i * N_ + j];
         }
     }
     size_t pitch;
