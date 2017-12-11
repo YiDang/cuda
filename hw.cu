@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <iostream>
-#include "handle.cu"
+
 
 using namespace std;
 
@@ -50,17 +50,17 @@ int main(void)
   print_to_stdio(imax, w);
 
   size_t pitch;
-  HANDLE_ERROR( cudaMallocPitch((void**)&d_w, &pitch, 3*sizeof(float), imax) );
+	cudaMallocPitch((void**)&d_w, &pitch, 3*sizeof(float), imax) 
 
-  HANDLE_ERROR( cudaMemcpy2D(d_w,             // device destination                                   
+   cudaMemcpy2D(d_w,             // device destination                                   
                              pitch,           // device pitch (calculated above)                      
                              w,               // src on host                                          
                              3*sizeof(float), // pitch on src (no padding so just width of row)       
                              3*sizeof(float), // width of data in bytes                               
                              imax,            // height of data                                       
-                             cudaMemcpyHostToDevice) );
+                             cudaMemcpyHostToDevice) ;
 
-  HANDLE_ERROR( cudaBindTexture2D(NULL, tex_w, d_w, tex_w.channelDesc, 3, imax, pitch) );
+  cudaBindTexture2D(NULL, tex_w, d_w, tex_w.channelDesc, 3, imax, pitch) ;
 
   tex_w.normalized = false;  // don't use normalized values                                           
   tex_w.filterMode = cudaFilterModeLinear;
