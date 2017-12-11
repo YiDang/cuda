@@ -219,6 +219,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
                              M_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
     cudaBindTexture2D(NULL, tex_A, d_a, tex_A.channelDesc, N_, M_, pitch) ;
+
 }
 
 double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
