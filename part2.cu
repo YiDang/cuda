@@ -57,8 +57,8 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
 }
 
 
-texture<float, 2, cudaReadModeElementType> texA;
-texture<float, 2, cudaReadModeElementType> texB;
+texture<float, 1, cudaReadModeElementType> texA;
+texture<float, 1, cudaReadModeElementType> texB;
 __global__ void MultiplyTexture(float *arrayC)  
 {  
 
@@ -72,8 +72,8 @@ __global__ void MultiplyTexture(float *arrayC)
         float temp_result = 0;
         for (int i = 0; i < N_; i++)
         {
-            //a = tex1Dfetch(texA, y * N_ + i);
-            a = tex2D<float>(texA, y, x);
+            a = tex1Dfetch(texA, y * M_ + i);
+            //a = tex2D<float>(texA, y, x);
             std::cout<<"idx:"<<y * N_ + i<<"v:"<<a<<std::endl;
             printf("idx:%d,%d,v:%f\n",x,y,a);
             //b = tex1Dfetch(texB, i * P_ + x);
@@ -183,6 +183,42 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     return end - start;
 }
 
+double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C, int method)
+{   
+    cudaError_t res;
+     
+    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
+    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
+
+    float[M_][N_] *d_a;
+    for(int i = 0; i < M_ ; i++)
+    {
+        for(int j = 0; j < N_; j++)
+        {
+            d_a[i][j] = host_array_A[i * N_ + j];
+        }
+    }
+    size_t pitch;
+    cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
+    //..........................
+
+    double start = rdtsc();
+
+    //cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
+    //cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
+    //cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
+    //MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
+
+    //cudaThreadSynchronize();
+    double end = rdtsc();
+
+    //res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
+
+    //cudaFree((void*)device_array_A);
+    
+    return end - start;
+}
+
 double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {	
 	double start = rdtsc();
@@ -269,7 +305,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 1, showdif = 0;
+    int showma = 0, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -299,7 +335,7 @@ int main(int argc, char **argv)
             printf("cuda:%f",tmp);
         }
     }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
@@ -318,11 +354,11 @@ int main(int argc, char **argv)
             printf("tile:%f",tmp);
         }
     }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("cuda textured start\n");
-    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
-	if(showma) show(host_array_C_texture, M_, P_);
+    diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture, 2);
+	 show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -337,7 +373,7 @@ int main(int argc, char **argv)
             printf("texture:%f",tmp);
         }
     }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
@@ -356,7 +392,7 @@ int main(int argc, char **argv)
             printf("seq:%f,",tmp);
         }
     }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
 	free(host_array_A); 
 	free(host_array_B);  
