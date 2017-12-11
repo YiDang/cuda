@@ -8,9 +8,9 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 1000
-#define N_ 1000
-#define P_ 1000
+#define M_ 5
+#define N_ 5
+#define P_ 5
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -23,7 +23,7 @@ uint64_t rdtsc(){
     return ((uint64_t)hi << 32) | lo;
 }
 
-__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
+__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed, int t)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
@@ -35,9 +35,9 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   row, /* the sequence number is only important with multiple cores */
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
-
-        a[row * cols + col] = curand_uniform(&state);
-        //a[row * cols + col] = row * cols + col;
+        float rd = curand_uniform(&state);
+        if(t == 0) a[row * cols + col] = rd;
+        else a[col * rows + row] = rd;
     }  
 }
 
@@ -49,10 +49,29 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
  	if (row < M_ && col < P_)  
     { 	
     	#pragma unroll
-	    for(int i = 0; i < N_; i++)
+        int i;
+	    for(i = 0; i < N_ - 1; i += 2)
         {
-	    	arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+	    	float tmp1 = arrayA[row * N_ + i] * arrayB[i * P_ + col];
+            float tmp2 = arrayA[row * N_ + i + 1] * arrayB[(i + 1) * P_ + col];
+            arrayC[row * P_ + col] += tmp1 + tmp2;
 	    }
+        if (i == N_ -1) arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+
+    }
+}
+__global__ void Multiply_old(float *arrayA, float *arrayB, float *arrayC)  
+{  
+    unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
+    unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
+
+    if (row < M_ && col < P_)  
+    {   
+        #pragma unroll
+        for(int i = 0; i < N_; i++)
+        {
+            arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+        }
     }
 }
 
@@ -116,7 +135,7 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC)
 }
 
     
-void cudaInit(float *host_array_A, int rows, int cols)
+void cudaInit(float *host_array_A, int rows, int cols, int t)
 {
     cudaError_t res;
     dim3 dimBlock(BLOCK_SIZE,BLOCK_SIZE);  
@@ -125,7 +144,7 @@ void cudaInit(float *host_array_A, int rows, int cols)
     float *device_array_A = NULL;
     res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
-    InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
+    InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1, t);
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
 
     cudaFree((void*)device_array_A);
@@ -259,6 +278,7 @@ int main(int argc, char **argv)
 {  
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
+    float *host_array_BT = (float*)malloc(P_*N_*sizeof(float));
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cuda = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_tile = (float*)malloc(M_*P_*sizeof(float));
@@ -267,10 +287,12 @@ int main(int argc, char **argv)
 
     int showma = 0, showdif = 0;
 	double diff = 0;
-    cudaInit(host_array_A, M_, N_);
+    cudaInit(host_array_A, M_, N_, 0);
 	//show(host_array_A, M_, N_);
-    cudaInit(host_array_B, N_, P_);
-	//show(host_array_B, N_, P_);
+    cudaInit(host_array_B, N_, P_, 0);
+	show(host_array_B, N_, P_);
+    cudaInit(host_array_BT, N_, P_, 1);
+    show(host_array_BT, N_, P_);
 
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
