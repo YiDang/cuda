@@ -57,8 +57,8 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
 }
 
 
-texture<float, 1, cudaReadModeElementType> texA;
-texture<float, 1, cudaReadModeElementType> texB;
+texture<float, 2, cudaReadModeElementType> texA;
+texture<float, 2, cudaReadModeElementType> texB;
 __global__ void MultiplyTexture(float *arrayC)  
 {  
 
@@ -72,10 +72,10 @@ __global__ void MultiplyTexture(float *arrayC)
         float temp_result = 0;
         for (int i = 0; i < N_; i++)
         {
-            a = tex1Dfetch(texA, y * N_ + i);
+            //a = tex1Dfetch(texA, y * N_ + i);
             //std::cout<<"idx:"<<y * N_ + i<<"v:"<<a<<std::endl;
-            printf("idx:%dv:%f",y * N_ + i,a);
-            b = tex1Dfetch(texB, i * P_ + x);
+            printf("idx:%dv:%f\n",y * N_ + i,a);
+            //b = tex1Dfetch(texB, i * P_ + x);
             temp_result += a * b;
         }
         arrayC[offset] = temp_result;
