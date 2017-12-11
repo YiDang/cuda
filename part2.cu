@@ -194,6 +194,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 
     float (*d_a)[N_];
     float (*tmp)[N_];
+
     for(int i = 0; i < M_ ; i++)
     {
         for(int j = 0; j < N_; j++)
