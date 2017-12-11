@@ -23,7 +23,7 @@ uint64_t rdtsc(){
     return ((uint64_t)hi << 32) | lo;
 }
 
-__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed, int t)  
+__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
@@ -35,10 +35,9 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   row, /* the sequence number is only important with multiple cores */
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
-        float rd = curand_uniform(&state);
-        rd = row * cols + col;
-        if(t == 0) a[row * cols + col] = rd;
-        else a[col * rows + row] = rd;
+
+        //a[row * cols + col] = curand_uniform(&state);
+        a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -47,15 +46,16 @@ __global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
 
-    if (row < M_ && col < P_)  
-    {   
-        #pragma unroll
-        for(int i = 0; i < N_; i++)
+ 	if (row < M_ && col < P_)  
+    { 	
+    	#pragma unroll
+	    for(int i = 0; i < N_; i++)
         {
-            arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
-        }
+	    	arrayC[row * P_ + col] += arrayA[row * N_ + i] * arrayB[i * P_ + col];
+	    }
     }
 }
+
 
 texture<float, 1, cudaReadModeElementType> texA;
 texture<float, 1, cudaReadModeElementType> texB;
@@ -80,7 +80,7 @@ __global__ void MultiplyTexture(float *arrayC)
     }
 }
 
-__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, int t)  
+__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC)  
 {
     int bx = blockIdx.x;
     int by = blockIdx.y;
@@ -93,57 +93,31 @@ __global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC, int t)
     __shared__ float sharedN[BLOCK_SIZE][BLOCK_SIZE];
 
     float v = 0.0;
-    if(t == 0)
+    #pragma unroll
+    for (int i = 0; i < (int)(ceil((float)N_/BLOCK_SIZE)); i++)
     {
-        #pragma unroll
-        for (int i = 0; i < (int)(ceil((float)N_/BLOCK_SIZE)); i++)
-        {
-            if (i*BLOCK_SIZE + tx < N_ && row < M_)
-                sharedM[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
-            else
-                sharedM[ty][tx] = 0.0;
-    
-            if (i*BLOCK_SIZE + ty < N_ && col < P_)
-                sharedN[ty][tx] = arrayB[(i*BLOCK_SIZE + ty)*P_ + col];
-            else
-                sharedN[ty][tx] = 0.0;
-            __syncthreads();
-            #pragma unroll
-            for(int j = 0; j < BLOCK_SIZE; j++)
-                v += sharedM[ty][j] * sharedN[j][tx];
-            __syncthreads();
-        }
-    }
-    else
-    {
-        #pragma unroll
-        for (int i = 0; i < (int)(ceil((float)N_/BLOCK_SIZE)); i++)
-        {
-            if (i*BLOCK_SIZE + tx < N_ && row < M_)
-                sharedM[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
-            else
-                sharedM[ty][tx] = 0.0;
-            if (i*BLOCK_SIZE + tx < N_ && row < P_)
-                sharedN[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
-            else
-                sharedN[ty][tx] = 0.0;
-            
-            __syncthreads();
-            #pragma unroll
-            for(int j = 0; j < BLOCK_SIZE; j++)
-                v += sharedM[tx][j] * sharedN[tx][j];
-            __syncthreads();
-        }
-    }
-    
+        if (i*BLOCK_SIZE + tx < N_ && row < M_)
+            sharedM[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
+        else
+            sharedM[ty][tx] = 0.0;
 
+        if (i*BLOCK_SIZE + ty < N_ && col < P_)
+            sharedN[ty][tx] = arrayB[(i*BLOCK_SIZE + ty)*P_ + col];
+        else
+            sharedN[ty][tx] = 0.0;
+        __syncthreads();
+        #pragma unroll
+        for(int j = 0; j < BLOCK_SIZE; j++)
+            v += sharedM[ty][j] * sharedN[j][tx];
+        __syncthreads();
+    }
 
     if (row < M_ && col < P_)
         arrayC[row*P_ + col] = v;
 }
 
     
-void cudaInit(float *host_array_A, int rows, int cols, int t)
+void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
     dim3 dimBlock(BLOCK_SIZE,BLOCK_SIZE);  
@@ -152,7 +126,7 @@ void cudaInit(float *host_array_A, int rows, int cols, int t)
     float *device_array_A = NULL;
     res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
     res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
-    InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1, t);
+    InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
     res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
 
     cudaFree((void*)device_array_A);
@@ -185,11 +159,7 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     }  
     else if(method == 1)
     {
-    	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, 0);
-    }
-    else if(method == 11)
-    {
-        Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C, 1);
+    	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C);
     }
     else if(method == 2)
     {
@@ -290,7 +260,6 @@ int main(int argc, char **argv)
 {  
 	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
 	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
-    float *host_array_BT = (float*)malloc(P_*N_*sizeof(float));
 	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cuda = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_tile = (float*)malloc(M_*P_*sizeof(float));
@@ -299,12 +268,10 @@ int main(int argc, char **argv)
 
     int showma = 1, showdif = 0;
 	double diff = 0;
-    cudaInit(host_array_A, M_, N_, 0);
+    cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
-    cudaInit(host_array_B, N_, P_, 0);
-	show(host_array_B, N_, P_);
-    cudaInit(host_array_BT, N_, P_, 1);
-    show(host_array_BT, N_, P_);
+    cudaInit(host_array_B, N_, P_);
+	//show(host_array_B, N_, P_);
 
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
@@ -312,7 +279,7 @@ int main(int argc, char **argv)
     std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
-//
+
     printf("cuda start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_cuda, 0);
 	if(showma) show(host_array_C_cuda, M_, P_);
@@ -330,7 +297,7 @@ int main(int argc, char **argv)
         }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//
+
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
 	if(showma) show(host_array_C_tile, M_, P_);
@@ -349,26 +316,7 @@ int main(int argc, char **argv)
         }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//
-    printf("cuda tiled transpose start\n");
-    diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 11);
-    if(showma) show(host_array_C_tile, M_, P_);
-    std::cout << "Time million cycles:\t\t"
-            << static_cast<double>(diff) / (1024 * 1024)
-            << std::endl<< std::endl;
 
-    error = 0;
-    for(int i = 0; i < M_ * N_; i++)
-    {
-        double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
-        error += tmp * tmp;
-        if(tmp != 0 && showdif)
-        {
-            printf("tile:%f",tmp);
-        }
-    }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//
     printf("cuda textured start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_texture, 2);
 	if(showma) show(host_array_C_texture, M_, P_);
@@ -387,7 +335,7 @@ int main(int argc, char **argv)
         }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//
+
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
 	if(showma) show(host_array_C_seq, M_, P_);
@@ -406,7 +354,7 @@ int main(int argc, char **argv)
         }
     }
     std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//
+
 	free(host_array_A); 
 	free(host_array_B);  
 	free(host_array_C_seq); 
