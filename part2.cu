@@ -69,10 +69,10 @@ __global__ void MultiplyTexture(float *arrayC)
 
     if (x < M_ && y < P_)
     {
+        float a = 0, b = 0;
         a = tex2D(tex_A, x+0.5f, y+0.5f);
         b = tex2D(tex_B, x+0.5f, y+0.5f);
-    printf("%f * %f, xy:%d,%d\n",a,b,x,y);
-        float a = 0, b = 0;
+        printf("%f * %f, xy:%d,%d\n",a,b,x,y);
         float temp_result = 0;
         //printf("idx:%d,%d,v:%f\n",y,x,a);
         //for (int i = 0; i < N_; i++)
