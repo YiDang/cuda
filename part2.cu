@@ -362,7 +362,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 1;
+    int showma = 0, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
             printf("cuda:%f",tmp);
         }
     }
-    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 //----------------------------------------------------------------
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
@@ -411,7 +411,7 @@ int main(int argc, char **argv)
             printf("tile:%f",tmp);
         }
     }
-    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 //----------------------------------------------------------------
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
@@ -430,7 +430,7 @@ int main(int argc, char **argv)
             printf("texture:%f ",tmp);
         }
     }
-    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 //----------------------------------------------------------------
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
@@ -449,7 +449,7 @@ int main(int argc, char **argv)
             printf("seq:%f,",tmp);
         }
     }
-    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 //----------------------------------------------------------------
 	free(host_array_A); 
 	free(host_array_B);  
