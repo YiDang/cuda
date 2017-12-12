@@ -8,9 +8,9 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 1000
-#define N_ 1000
-#define P_ 1000
+#define M_ 2
+#define N_ 2
+#define P_ 3
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -36,8 +36,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        a[row * cols + col] = curand_uniform(&state);
-        //a[row * cols + col] = row * cols + col;
+        //a[row * cols + col] = curand_uniform(&state);
+        a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -69,17 +69,20 @@ __global__ void MultiplyTexture(float *arrayC)
 
     if (x < M_ && y < P_)
     {
+        a = tex2D(tex_A, x+0.5f, y+0.5f);
+        b = tex2D(tex_B, x+0.5f, y+0.5f);
+    printf("%f * %f, xy:%d,%d\n",a,b,x,y);
         float a = 0, b = 0;
         float temp_result = 0;
         //printf("idx:%d,%d,v:%f\n",y,x,a);
-        for (int i = 0; i < N_; i++)
-        {
-            b = tex2D(tex_B, x+0.5f, i+0.5f);
-            a = tex2D(tex_A, i+0.5f, y+0.5f);
-            temp_result += a * b;
-            //if(x == 0 && y == 1)printf("%f * %f, %f\n",a,b,temp_result);
-        }
-        arrayC[y * M_ + x] = temp_result;
+        //for (int i = 0; i < N_; i++)
+        //{
+        //    b = tex2D(tex_B, x+0.5f, i+0.5f);
+        //    a = tex2D(tex_A, i+0.5f, y+0.5f);
+        //    temp_result += a * b;
+        //    printf("%f * %f, %f, xy:%d,%d\n",a,b,temp_result,x,y);
+        //}
+        //arrayC[y * M_ + x] = temp_result;
     }
 }
 
@@ -362,7 +365,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 0;
+    int showma = 1, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
