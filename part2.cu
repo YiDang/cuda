@@ -8,9 +8,9 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 1000
-#define N_ 1000
-#define P_ 1000
+#define M_ 5
+#define N_ 5
+#define P_ 5
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
