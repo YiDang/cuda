@@ -8,9 +8,9 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 5
-#define N_ 5
-#define P_ 5
+#define M_ 1000
+#define N_ 1000
+#define P_ 1000
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -362,7 +362,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 1, showdif = 1;
+    int showma = 0, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
