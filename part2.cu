@@ -77,6 +77,7 @@ __global__ void MultiplyTexture(float *arrayC)
             a = tex2D(tex_A, x+0.5f, i+0.5f);
             b = tex2D(tex_B, i+0.5f, y+0.5f);
             temp_result += a * b;
+            if(x == 0 && y == 1)printf("%f * %f, %f\n",a,b,temp_result);
         }
         arrayC[x * N_ + y] = temp_result;
     }
