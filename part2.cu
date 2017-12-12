@@ -8,9 +8,9 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 5
-#define N_ 5
-#define P_ 5
+#define M_ 1000
+#define N_ 1000
+#define P_ 1000
 
 #define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
@@ -362,13 +362,13 @@ int main(int argc, char **argv)
 	double *host_array_C_texture = (double*)malloc(M_*P_*sizeof(double));
 	double *host_array_C_cublas = (double*)malloc(M_*P_*sizeof(double));
 
-    int showma = 1, showdif = 1;
+    int showma = 0, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
 	//show(host_array_B, N_, P_);
-
+//---------------------------------------------------------------
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
     if(showma) show(host_array_C_cublas, M_, P_);
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-
+//---------------------------------------------------------------
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
 	if(showma) show(host_array_C_tile, M_, P_);
@@ -412,7 +412,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-
+//---------------------------------------------------------------
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
 	if(showma)show(host_array_C_texture, M_, P_);
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-
+//---------------------------------------------------------------
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
 	if(showma) show(host_array_C_seq, M_, P_);
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-
+//---------------------------------------------------------------
 	free(host_array_A); 
 	free(host_array_B);  
 	free(host_array_C_seq); 
