@@ -79,7 +79,7 @@ __global__ void MultiplyTexture(float *arrayC)
             temp_result += a * b;
             if(x == 0 && y == 1)printf("%f * %f, %f\n",a,b,temp_result);
         }
-        arrayC[x * N_ + y] = temp_result;
+        arrayC[y * M_ + x] = temp_result;
     }
 }
 
