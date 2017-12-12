@@ -199,12 +199,14 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
     float (*d_a)[N_];
     float (*tmp)[N_];
 
+    tmp = (float (*)[N_])malloc(M_*N_*sizeof(float));
+
     for(int i = 0; i < M_ ; i++)
     {
         for(int j = 0; j < N_; j++)
         {
             tmp[i][j] = host_array_A[i * N_ + j];
-            printf("%d ",tmp[i][j]);
+            printf("%f ",tmp[i][j]);
         }
         printf("\n");
     }
@@ -219,6 +221,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
                              M_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
     cudaBindTexture2D(NULL, tex_A, d_a, tex_A.channelDesc, N_, M_, pitch) ;
+    return 0;
 
 }
 
