@@ -78,7 +78,7 @@ __global__ void MultiplyTexture(float *arrayC)
         for (int i = 0; i < N_; i++)
         {
             a = tex2D(tex_A, i+0.5f, x+0.5f);
-            b = tex2D(tex_B, y+0.5f, i+0.5f);
+            b = tex2D(tex_B, i+0.5f, y+0.5f);
             
             temp_result += a * b;
             printf("%f * %f, %f, xy:%d,%d\n",a,b,temp_result,x,y);
@@ -253,7 +253,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
                              P_*sizeof(float), // width of data in bytes                               
                              N_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
-    cudaBindTexture2D(NULL, tex_B, d_b, tex_B.channelDesc, P_, N_, pitch2) ;
+    cudaBindTexture2D(NULL, tex_B, d_b, tex_B.channelDesc, N_, P_, pitch2) ;
     tex_B.normalized = false;  // don't use normalized values                                           
     tex_B.filterMode = cudaFilterModeLinear;
     tex_B.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
