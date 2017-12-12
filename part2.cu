@@ -205,7 +205,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
             tmp1[i][j] = host_array_A[i * N_ + j];
             //printf("%f ",tmp1[i][j]);
         }
-        printf("\n");
+        //printf("\n");
     }
     size_t pitch;
     cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
@@ -235,7 +235,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
             tmp2[i][j] = host_array_A[i * P_ + j];
             //printf("%f ",tmp2[i][j]);
         }
-        printf("\n");
+        //printf("\n");
     }
     size_t pitch2;
     cudaMallocPitch((void**)&d_b, &pitch2, P_*sizeof(float), N_);
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
     	error += tmp * tmp;
         if(tmp != 0 && showdif)
         {
-            printf("texture:%f",tmp);
+            printf("texture:%f ",tmp);
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
