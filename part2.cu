@@ -66,23 +66,20 @@ __global__ void MultiplyTexture(float *arrayC)
 
     int x = threadIdx.x + blockIdx.x * blockDim.x;
     int y = threadIdx.y + blockIdx.y * blockDim.y;
-    int offset = x + y * blockDim.x * gridDim.x;
 
     if (x < M_ && y < P_)
     {
         float a = 0, b = 0;
         float temp_result = 0;
-        a = tex2D(tex_A, y+0.5f, x+0.5f);
+        //a = tex2D(tex_A, y+0.5f, x+0.5f);
         printf("idx:%d,%d,v:%f\n",y,x,a);
         for (int i = 0; i < N_; i++)
         {
-            //a = tex2D<float>(texA, y, x);
-            
-            //printf("idx:%d,%d,v:%f\n",y,x,a);
-            //b = tex1Dfetch(texB, i * P_ + x);
+            a = tex2D(tex_A, x+0.5f, i+0.5f);
+            b = tex1Dfetch(tex_B, i+0.5f, y+0.5f);
             temp_result += a * b;
         }
-        arrayC[offset] = temp_result;
+        arrayC[x * N_ + y] = temp_result;
     }
 }
 
@@ -196,18 +193,18 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
-
+    //..........................
     float (*d_a)[N_];
-    float (*tmp)[N_];
+    float (*tmp1)[N_];
 
-    tmp = (float (*)[N_])malloc(M_*N_*sizeof(float));
+    tmp1 = (float (*)[N_])malloc(M_*N_*sizeof(float));
 
     for(int i = 0; i < M_ ; i++)
     {
         for(int j = 0; j < N_; j++)
         {
-            tmp[i][j] = host_array_A[i * N_ + j];
-            printf("%f ",tmp[i][j]);
+            tmp1[i][j] = host_array_A[i * N_ + j];
+            printf("%f ",tmp1[i][j]);
         }
         printf("\n");
     }
@@ -216,7 +213,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 
     cudaMemcpy2D(d_a,             // device destination                                   
                              pitch,           // device pitch (calculated above)                      
-                             tmp,               // src on host                                          
+                             tmp1,               // src on host                                          
                              N_*sizeof(float), // pitch on src (no padding so just width of row)       
                              N_*sizeof(float), // width of data in bytes                               
                              M_,            // height of data                                       
@@ -226,8 +223,38 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
     tex_A.filterMode = cudaFilterModeLinear;
     tex_A.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
     tex_A.addressMode[1] = cudaAddressModeClamp;
-
     //..........................
+    float (*d_b)[P_];
+    float (*tmp2)[P_];
+
+    tmp2 = (float (*)[P_])malloc(N_*P_*sizeof(float));
+
+    for(int i = 0; i < N_ ; i++)
+    {
+        for(int j = 0; j < P_; j++)
+        {
+            tmp2[i][j] = host_array_A[i * P_ + j];
+            printf("%f ",tmp2[i][j]);
+        }
+        printf("\n");
+    }
+    size_t pitch2;
+    cudaMallocPitch((void**)&d_b, &pitch2, P_*sizeof(float), N_);
+
+    cudaMemcpy2D(d_b,             // device destination                                   
+                             pitch2,           // device pitch2 (calculated above)                      
+                             tmp2,               // src on host                                          
+                             P_*sizeof(float), // pitch2 on src (no padding so just width of row)       
+                             P_*sizeof(float), // width of data in bytes                               
+                             N_,            // height of data                                       
+                             cudaMemcpyHostToDevice) ;
+    cudaBindTexture2D(NULL, tex_B, d_b, tex_B.channelDesc, P_, N_, pitch2) ;
+    tex_B.normalized = false;  // don't use normalized values                                           
+    tex_B.filterMode = cudaFilterModeLinear;
+    tex_B.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
+    tex_B.addressMode[1] = cudaAddressModeClamp;
+    //..........................
+
 
     double start = rdtsc();
 
@@ -236,9 +263,12 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
     //cudaThreadSynchronize();
     double end = rdtsc();
 
-    //res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
+    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
+    free(tmp1);
     cudaFree((void*)d_a);
+    free(tmp2);
+    cudaFree((void*)d_b);
     cudaFree((void*)device_array_C);
 
     
@@ -385,22 +415,22 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
-	 //show(host_array_C_texture, M_, P_);
+	show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
 
-    //error = 0;
-    //for(int i = 0; i < M_ * N_; i++)
-    //{
-    //	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
-    //	error += tmp * tmp;
-    //    if(tmp != 0 && showdif)
-    //    {
-    //        printf("texture:%f",tmp);
-    //    }
-    //}
-    //if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    error = 0;
+    for(int i = 0; i < M_ * N_; i++)
+    {
+    	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
+    	error += tmp * tmp;
+        if(tmp != 0 && showdif)
+        {
+            printf("texture:%f",tmp);
+        }
+    }
+    std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
