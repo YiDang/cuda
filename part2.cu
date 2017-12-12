@@ -36,8 +36,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        //a[row * cols + col] = curand_uniform(&state);
-        a[row * cols + col] = row * cols + col;
+        a[row * cols + col] = curand_uniform(&state);
+        //a[row * cols + col] = row * cols + col;
     }  
 }
 
@@ -77,7 +77,7 @@ __global__ void MultiplyTexture(float *arrayC)
             b = tex2D(tex_B, x+0.5f, i+0.5f);
             a = tex2D(tex_A, i+0.5f, y+0.5f);
             temp_result += a * b;
-            if(x == 0 && y == 1)printf("%f * %f, %f\n",a,b,temp_result);
+            //if(x == 0 && y == 1)printf("%f * %f, %f\n",a,b,temp_result);
         }
         arrayC[y * M_ + x] = temp_result;
     }
