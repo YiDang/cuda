@@ -78,10 +78,10 @@ __global__ void MultiplyTexture(float *arrayC)
         for (int i = 0; i < N_; i++)
         {
             a = tex2D(tex_A, i+0.5f, x+0.5f);
-            b = tex2D(tex_B, i+0.5f, y+0.5f);
+            b = tex2D(tex_B, y+0.5f, i+0.5f);
             
             temp_result += a * b;
-            printf("a%d,%d * b%d,%d  :%f * %f, %f, xy:%d,%d\n",i,x,i,y,a,b,temp_result,x,y);
+            printf("a%d,%d * b%d,%d  :%f * %f, %f, xy:%d,%d\n",i,x,y,i,a,b,temp_result,x,y);
         }
         arrayC[y * M_ + x] = temp_result;
 
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 0;
+    int showma = 1, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
