@@ -221,7 +221,27 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
                              M_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
     cudaBindTexture2D(NULL, tex_A, d_a, tex_A.channelDesc, N_, M_, pitch) ;
-    return 0;
+    tex_A.normalized = false;  // don't use normalized values                                           
+    tex_A.filterMode = cudaFilterModeLinear;
+    tex_A.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
+    tex_A.addressMode[1] = cudaAddressModeClamp;
+
+    //..........................
+
+    double start = rdtsc();
+
+    MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
+
+    //cudaThreadSynchronize();
+    double end = rdtsc();
+
+    //res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
+
+    cudaFree((void*)d_a)
+    cudaFree((void*)device_array_C);
+
+    
+    return end - start;
 
 }
 
