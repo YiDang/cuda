@@ -362,7 +362,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 1;
+    int showma = 1, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -444,7 +444,7 @@ int main(int argc, char **argv)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_seq[i];
     	error += tmp * tmp;
-        if(tmp != 0 && showdif)
+        if(tmp != 0.0f && showdif)
         {
             printf("seq:%f,",tmp);
         }
