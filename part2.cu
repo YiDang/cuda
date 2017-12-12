@@ -23,7 +23,7 @@ uint64_t rdtsc(){
     return ((uint64_t)hi << 32) | lo;
 }
 
-__global__ void InitArray(double *a, unsigned int rows, unsigned int cols, int seed)  
+__global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int seed)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
@@ -41,7 +41,7 @@ __global__ void InitArray(double *a, unsigned int rows, unsigned int cols, int s
     }  
 }
 
-__global__ void Multiply(double *arrayA, double *arrayB, double *arrayC)  
+__global__ void Multiply(float *arrayA, float *arrayB, float *arrayC)  
 {  
     unsigned int row = blockDim.y*blockIdx.y + threadIdx.y;  
     unsigned int col = blockDim.x*blockIdx.x + threadIdx.x;  
@@ -57,11 +57,11 @@ __global__ void Multiply(double *arrayA, double *arrayB, double *arrayC)
 }
 
 
-//texture<double, 1, cudaReadModeElementType> texA;
-//texture<double, 1, cudaReadModeElementType> texB;
-texture<double,2,cudaReadModeElementType> tex_A;
-texture<double,2,cudaReadModeElementType> tex_B;
-__global__ void MultiplyTexture(double *arrayC)  
+//texture<float, 1, cudaReadModeElementType> texA;
+//texture<float, 1, cudaReadModeElementType> texB;
+texture<float,2,cudaReadModeElementType> tex_A;
+texture<float,2,cudaReadModeElementType> tex_B;
+__global__ void MultiplyTexture(float *arrayC)  
 {  
 
     int x = threadIdx.x + blockIdx.x * blockDim.x;
@@ -69,8 +69,8 @@ __global__ void MultiplyTexture(double *arrayC)
 
     if (x < M_ && y < P_)
     {
-        double a = 0, b = 0;
-        double temp_result = 0;
+        float a = 0, b = 0;
+        float temp_result = 0;
         //printf("idx:%d,%d,v:%f\n",y,x,a);
         for (int i = 0; i < N_; i++)
         {
@@ -83,7 +83,7 @@ __global__ void MultiplyTexture(double *arrayC)
     }
 }
 
-__global__ void Multi_SM(double *arrayA, double *arrayB, double *arrayC)  
+__global__ void Multi_SM(float *arrayA, float *arrayB, float *arrayC)  
 {
     int bx = blockIdx.x;
     int by = blockIdx.y;
@@ -92,12 +92,12 @@ __global__ void Multi_SM(double *arrayA, double *arrayB, double *arrayC)
     int row = blockDim.y * by + ty;  
     int col = blockDim.x * bx + tx;
 
-    __shared__ double sharedM[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ double sharedN[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float sharedM[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float sharedN[BLOCK_SIZE][BLOCK_SIZE];
 
-    double v = 0.0;
+    float v = 0.0;
     #pragma unroll
-    for (int i = 0; i < (int)(ceil((double)N_/BLOCK_SIZE)); i++)
+    for (int i = 0; i < (int)(ceil((float)N_/BLOCK_SIZE)); i++)
     {
         if (i*BLOCK_SIZE + tx < N_ && row < M_)
             sharedM[ty][tx] = arrayA[row*N_ + i*BLOCK_SIZE + tx];
@@ -120,22 +120,22 @@ __global__ void Multi_SM(double *arrayA, double *arrayB, double *arrayC)
 }
 
     
-void cudaInit(double *host_array_A, int rows, int cols)
+void cudaInit(float *host_array_A, int rows, int cols)
 {
     cudaError_t res;
     dim3 dimBlock(BLOCK_SIZE,BLOCK_SIZE);  
     dim3 dimGrid((cols+dimBlock.x-1)/(dimBlock.x), (rows+dimBlock.y-1)/(dimBlock.y));
 
-    double *device_array_A = NULL;
-    res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(double));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(double), cudaMemcpyHostToDevice);CHECK(res)
+    float *device_array_A = NULL;
+    res = cudaMalloc((void**)(&device_array_A), rows * cols * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), rows * cols * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
     InitArray<<<dimGrid, dimBlock>>>(device_array_A, rows, cols, 1);
-    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(double), cudaMemcpyDeviceToHost);CHECK(res)  
+    res = cudaMemcpy((void*)(host_array_A), (void*)(device_array_A), rows * cols * sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)  
 
     cudaFree((void*)device_array_A);
 } 
 
-double cudaMul(double *host_array_A, double *host_array_B, double *host_array_C, int method)
+double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, int method)
 {	
     cudaError_t res;
      
@@ -143,17 +143,17 @@ double cudaMul(double *host_array_A, double *host_array_B, double *host_array_C,
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
 
-    double *device_array_A = NULL;
-    res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(double));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(double), cudaMemcpyHostToDevice);CHECK(res)
+    float *device_array_A = NULL;
+    res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_A), (void*)(host_array_A), M_ * N_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    double *device_array_B = NULL;
-    res = cudaMalloc((void**)(&device_array_B), N_ * P_ * sizeof(double));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_B), (void*)(host_array_B), N_ * P_ * sizeof(double), cudaMemcpyHostToDevice);CHECK(res)
+    float *device_array_B = NULL;
+    res = cudaMalloc((void**)(&device_array_B), N_ * P_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_B), (void*)(host_array_B), N_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
-    double *device_array_C = NULL;
-    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(double));CHECK(res)
-    res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(double), cudaMemcpyHostToDevice);CHECK(res)
+    float *device_array_C = NULL;
+    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
+    res = cudaMemcpy((void*)(device_array_C), (void*)(host_array_C), M_ * P_ * sizeof(float), cudaMemcpyHostToDevice);CHECK(res)
 
     double start = rdtsc();
     if(method == 0)
@@ -166,15 +166,15 @@ double cudaMul(double *host_array_A, double *host_array_B, double *host_array_C,
     }
     //else if(method == 2)
     //{
-    //	cudaChannelFormatDesc desc = cudaCreateChannelDesc<double>(); 
-    //	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(double));
-	//	cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(double));
+    //	cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
+    //	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
+	//	cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
 	//	MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
     //}
     cudaThreadSynchronize();
     double end = rdtsc();
 
-    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(double), cudaMemcpyDeviceToHost);CHECK(res)
+    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
     cudaFree((void*)device_array_A);
     cudaFree((void*)device_array_B);
@@ -184,20 +184,20 @@ double cudaMul(double *host_array_A, double *host_array_B, double *host_array_C,
 }
 
 
-double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array_C)
+double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 {   
     cudaError_t res;
      
-    double *device_array_C = NULL;
-    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(double));CHECK(res)
+    float *device_array_C = NULL;
+    res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
 
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
     dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
     //..........................
-    double (*d_a)[N_];
-    double (*tmp1)[N_];
+    float (*d_a)[N_];
+    float (*tmp1)[N_];
 
-    tmp1 = (double (*)[N_])malloc(M_*N_*sizeof(double));
+    tmp1 = (float (*)[N_])malloc(M_*N_*sizeof(float));
 
     for(int i = 0; i < M_ ; i++)
     {
@@ -209,13 +209,13 @@ double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array
         //printf("\n");
     }
     size_t pitch;
-    cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(double), M_);
+    cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
 
     cudaMemcpy2D(d_a,             // device destination                                   
                              pitch,           // device pitch (calculated above)                      
                              tmp1,               // src on host                                          
-                             N_*sizeof(double), // pitch on src (no padding so just width of row)       
-                             N_*sizeof(double), // width of data in bytes                               
+                             N_*sizeof(float), // pitch on src (no padding so just width of row)       
+                             N_*sizeof(float), // width of data in bytes                               
                              M_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
     cudaBindTexture2D(NULL, tex_A, d_a, tex_A.channelDesc, N_, M_, pitch) ;
@@ -224,10 +224,10 @@ double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array
     tex_A.addressMode[0] = cudaAddressModeClamp; // don't wrap around indices                           
     tex_A.addressMode[1] = cudaAddressModeClamp;
     //..........................
-    double (*d_b)[P_];
-    double (*tmp2)[P_];
+    float (*d_b)[P_];
+    float (*tmp2)[P_];
 
-    tmp2 = (double (*)[P_])malloc(N_*P_*sizeof(double));
+    tmp2 = (float (*)[P_])malloc(N_*P_*sizeof(float));
 
     for(int i = 0; i < N_ ; i++)
     {
@@ -239,13 +239,13 @@ double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array
         //printf("\n");
     }
     size_t pitch2;
-    cudaMallocPitch((void**)&d_b, &pitch2, P_*sizeof(double), N_);
+    cudaMallocPitch((void**)&d_b, &pitch2, P_*sizeof(float), N_);
 
     cudaMemcpy2D(d_b,             // device destination                                   
                              pitch2,           // device pitch2 (calculated above)                      
                              tmp2,               // src on host                                          
-                             P_*sizeof(double), // pitch2 on src (no padding so just width of row)       
-                             P_*sizeof(double), // width of data in bytes                               
+                             P_*sizeof(float), // pitch2 on src (no padding so just width of row)       
+                             P_*sizeof(float), // width of data in bytes                               
                              N_,            // height of data                                       
                              cudaMemcpyHostToDevice) ;
     cudaBindTexture2D(NULL, tex_B, d_b, tex_B.channelDesc, P_, N_, pitch2) ;
@@ -263,7 +263,7 @@ double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array
     //cudaThreadSynchronize();
     double end = rdtsc();
 
-    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(double), cudaMemcpyDeviceToHost);CHECK(res)
+    res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
     free(tmp1);
     cudaFree((void*)d_a);
@@ -276,7 +276,7 @@ double cudaMulTex(double *host_array_A, double *host_array_B, double *host_array
 
 }
 
-double sequential(double *host_array_A, double *host_array_B, double *host_array_C)
+double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 {	
 	double start = rdtsc();
 	for(int i = 0; i < M_; i++)
@@ -296,12 +296,12 @@ double sequential(double *host_array_A, double *host_array_B, double *host_array
 	return end - start;
 }
 
-double cublas(double *host_array_A, double *host_array_B, double *host_array_C)
+double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
 {
 
-	thrust::host_vector<double> hvA(M_ * N_);
-	thrust::host_vector<double> hvB(N_ * P_);
-	thrust::host_vector<double> hvC(M_ * P_);
+	thrust::host_vector<float> hvA(M_ * N_);
+	thrust::host_vector<float> hvB(N_ * P_);
+	thrust::host_vector<float> hvC(M_ * P_);
 	for(int i = 0; i < M_ * N_; i++) 
 	{
 		hvA[i] = host_array_A[i];
@@ -311,13 +311,13 @@ double cublas(double *host_array_A, double *host_array_B, double *host_array_C)
 		hvB[i] = host_array_B[i];
 	}
     
-	thrust::device_vector<double> dvA = hvA;
-	thrust::device_vector<double> dvB = hvB;
-	thrust::device_vector<double> dvC(M_ * P_);
+	thrust::device_vector<float> dvA = hvA;
+	thrust::device_vector<float> dvB = hvB;
+	thrust::device_vector<float> dvC(M_ * P_);
 
     int lda=N_ ,ldb=P_, ldc=P_;
-    const double alpha = 1.0f;
-    const double beta = 0.0f;
+    const float alpha = 1.0f;
+    const float beta = 0.0f;
  
     // Create a handle for CUBLAS
     cublasHandle_t handle;
@@ -354,21 +354,21 @@ double cublas(double *host_array_A, double *host_array_B, double *host_array_C)
 
 int main(int argc, char **argv)  
 {  
-	double *host_array_A = (double*)malloc(M_*N_*sizeof(double)); 
-	double *host_array_B = (double*)malloc(P_*N_*sizeof(double));
-	double *host_array_C_seq = (double*)malloc(M_*P_*sizeof(double));
-	double *host_array_C_cuda = (double*)malloc(M_*P_*sizeof(double));
-	double *host_array_C_tile = (double*)malloc(M_*P_*sizeof(double));
-	double *host_array_C_texture = (double*)malloc(M_*P_*sizeof(double));
-	double *host_array_C_cublas = (double*)malloc(M_*P_*sizeof(double));
+	float *host_array_A = (float*)malloc(M_*N_*sizeof(float)); 
+	float *host_array_B = (float*)malloc(P_*N_*sizeof(float));
+	float *host_array_C_seq = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_cuda = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_tile = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
+	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 1;
+    int showma = 1, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
     cudaInit(host_array_B, N_, P_);
 	//show(host_array_B, N_, P_);
-//---------------------------------------------------------------
+//----------------------------------------------------------------
 	printf("cublas start\n");
     diff = 0;diff = cublas(host_array_A, host_array_B, host_array_C_cublas);
     if(showma) show(host_array_C_cublas, M_, P_);
@@ -393,7 +393,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//---------------------------------------------------------------
+//----------------------------------------------------------------
 	printf("cuda tiled start\n");
     diff = 0;diff = cudaMul(host_array_A, host_array_B, host_array_C_tile, 1);
 	if(showma) show(host_array_C_tile, M_, P_);
@@ -412,7 +412,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//---------------------------------------------------------------
+//----------------------------------------------------------------
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
 	if(showma)show(host_array_C_texture, M_, P_);
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//---------------------------------------------------------------
+//----------------------------------------------------------------
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
 	if(showma) show(host_array_C_seq, M_, P_);
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
         }
     }
     if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
-//---------------------------------------------------------------
+//----------------------------------------------------------------
 	free(host_array_A); 
 	free(host_array_B);  
 	free(host_array_C_seq); 
