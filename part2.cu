@@ -77,8 +77,9 @@ __global__ void MultiplyTexture(float *arrayC)
         //printf("idx:%d,%d,v:%f\n",y,x,a);
         for (int i = 0; i < N_; i++)
         {
-            b = tex2D(tex_B, y+0.5f, i+0.5f);
             a = tex2D(tex_A, i+0.5f, x+0.5f);
+            b = tex2D(tex_B, y+0.5f, i+0.5f);
+            
             temp_result += a * b;
             printf("%f * %f, %f, xy:%d,%d\n",a,b,temp_result,x,y);
         }
@@ -194,9 +195,9 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
      
     float *device_array_C = NULL;
     res = cudaMalloc((void**)(&device_array_C), M_ * P_ * sizeof(float));CHECK(res)
-
+    int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
-    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
+    dim3 dimGrid((maxd + dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
     //..........................
     float (*d_a)[N_];
     float (*tmp1)[N_];
