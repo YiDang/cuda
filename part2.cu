@@ -237,7 +237,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 
     //res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
 
-    cudaFree((void*)d_a)
+    cudaFree((void*)d_a);
     cudaFree((void*)device_array_C);
 
     
