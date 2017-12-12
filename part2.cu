@@ -238,7 +238,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
     {
         for(int j = 0; j < P_; j++)
         {
-            tmp2[i][j] = host_array_A[i * P_ + j];
+            tmp2[i][j] = host_array_B[i * P_ + j];
             //printf("%f ",tmp2[i][j]);
         }
         //printf("\n");
