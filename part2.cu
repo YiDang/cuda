@@ -203,7 +203,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
         for(int j = 0; j < N_; j++)
         {
             tmp1[i][j] = host_array_A[i * N_ + j];
-            printf("%f ",tmp1[i][j]);
+            //printf("%f ",tmp1[i][j]);
         }
         printf("\n");
     }
@@ -233,7 +233,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
         for(int j = 0; j < P_; j++)
         {
             tmp2[i][j] = host_array_A[i * P_ + j];
-            printf("%f ",tmp2[i][j]);
+            //printf("%f ",tmp2[i][j]);
         }
         printf("\n");
     }
@@ -361,7 +361,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 0;
+    int showma = 1, showdif = 1;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
@@ -414,7 +414,7 @@ int main(int argc, char **argv)
 
     printf("cuda textured start\n");
     diff = 0;diff = cudaMulTex(host_array_A, host_array_B, host_array_C_texture);
-	show(host_array_C_texture, M_, P_);
+	if(showma)show(host_array_C_texture, M_, P_);
 	std::cout << "Time million cycles:\t\t"
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
@@ -429,7 +429,7 @@ int main(int argc, char **argv)
             printf("texture:%f",tmp);
         }
     }
-    std::cout << "error:\t\t"<< error << std::endl << std::endl;
+    if(showdif)std::cout << "error:\t\t"<< error << std::endl << std::endl;
 
     printf("seq start\n");
 	diff = 0;diff = sequential(host_array_A, host_array_B, host_array_C_seq);
