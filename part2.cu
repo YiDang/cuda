@@ -265,7 +265,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
 
     MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
 
-    //cudaThreadSynchronize();
+    cudaThreadSynchronize();
     double end = rdtsc();
 
     res = cudaMemcpy((void*)(host_array_C), (void*)(device_array_C), M_ * P_*sizeof(float), cudaMemcpyDeviceToHost);CHECK(res)
