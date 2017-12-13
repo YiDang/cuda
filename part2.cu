@@ -8,11 +8,11 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 4
-#define N_ 5
-#define P_ 6
+#define M_ 1000
+#define N_ 1000
+#define P_ 1000
 
-#define BLOCK_SIZE 4
+#define BLOCK_SIZE 32
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -69,19 +69,15 @@ __global__ void MultiplyTexture(float *arrayC)
 
     if (x < M_ && y < P_)
     {
-        float a = 0, b = 0;
-        //a = tex2D(tex_A, x+0.5f, y+0.5f);
-        //b = tex2D(tex_B, y+0.5f, x+0.5f);
-        //printf("%f * %f, xy:%d,%d\n",a,b,x,y);
+        float a = 0, b = 0;        
+
         float temp_result = 0;
-        //printf("idx:%d,%d,v:%f\n",y,x,a);
         for (int i = 0; i < N_; i++)
         {
             a = tex2D(tex_A, i+0.5f, x+0.5f);
             b = tex2D(tex_B, y+0.5f, i+0.5f);
             
             temp_result += a * b;
-        //    printf("a%d,%d * b%d,%d  :%f * %f, %f, xy:%d,%d\n",i,x,y,i,a,b,temp_result,x,y);
         }
         arrayC[x * P_ + y] = temp_result;
 
@@ -169,13 +165,6 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
     {
     	Multi_SM<<<dimGrid, dimBlock>>>(device_array_A, device_array_B, device_array_C);
     }
-    //else if(method == 2)
-    //{
-    //	cudaChannelFormatDesc desc = cudaCreateChannelDesc<float>(); 
-    //	cudaBindTexture(NULL, texA, device_array_A, desc, M_ * N_ * sizeof(float));
-	//	cudaBindTexture(NULL, texB, device_array_B, desc, N_ * P_ * sizeof(float));
-	//	MultiplyTexture<<<dimGrid, dimBlock>>>(device_array_C);
-    //}
     cudaThreadSynchronize();
     double end = rdtsc();
 
@@ -209,9 +198,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
         for(int j = 0; j < N_; j++)
         {
             tmp1[i][j] = host_array_A[i * N_ + j];
-            //printf("%f ",tmp1[i][j]);
         }
-        //printf("\n");
     }
     size_t pitch;
     cudaMallocPitch((void**)&d_a, &pitch, N_*sizeof(float), M_);
@@ -239,9 +226,7 @@ double cudaMulTex(float *host_array_A, float *host_array_B, float *host_array_C)
         for(int j = 0; j < P_; j++)
         {
             tmp2[i][j] = host_array_B[i * P_ + j];
-            //printf("%f ",tmp2[i][j]);
         }
-        //printf("\n");
     }
     size_t pitch2;
     cudaMallocPitch((void**)&d_b, &pitch2, P_*sizeof(float), N_);
@@ -291,9 +276,7 @@ double sequential(float *host_array_A, float *host_array_B, float *host_array_C)
 			host_array_C[i * P_ + j] = 0;
 			for(int k = 0; k < N_; k++)
 			{
-				//printf("index%d\n", i * M_ + j);
 				host_array_C[i * P_ + j] += host_array_A[i * N_ + k] * host_array_B[k * P_ + j];
-				//printf("%2f,%2f,%2f,\n", host_array_A[i * N_ + k], host_array_B[k * P_ + j], host_array_C[i * M_ + j]);
 			}
 		}
 	}
