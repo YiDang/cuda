@@ -36,8 +36,8 @@ __global__ void InitArray(float *a, unsigned int rows, unsigned int cols, int se
                   0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
                   &state);
 
-        //a[row * cols + col] = curand_uniform(&state);
-        a[row * cols + col] = row * cols + col;
+        a[row * cols + col] = curand_uniform(&state);
+        //a[row * cols + col] = row * cols + col;
     }  
 }
 
