@@ -8,11 +8,11 @@
 #include <iostream>
 #include <thrust/device_vector.h>
 
-#define M_ 1000
-#define N_ 1000
-#define P_ 1000
+#define M_ 4
+#define N_ 5
+#define P_ 6
 
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 4
 #define CHECK(res) if(res!=cudaSuccess){exit(-1);}  
 
 #define show(matrix, lenm, lenn) for(int r = 0; r < lenm; r++){for (int c = 0; c < lenn; c++){printf("%.6f ", matrix[r*lenn+c]);}printf("\n");}printf("\n");
@@ -388,7 +388,7 @@ int main(int argc, char **argv)
             << static_cast<double>(diff) / (1024 * 1024)
             << std::endl<< std::endl;
     double error = 0;
-    for(int i = 0; i < M_ * N_; i++)
+    for(int i = 0; i < M_ * P_; i++)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_cuda[i];
     	error += tmp * tmp;
@@ -407,7 +407,7 @@ int main(int argc, char **argv)
             << std::endl<< std::endl;
 
     error = 0;
-    for(int i = 0; i < M_ * N_; i++)
+    for(int i = 0; i < M_ * P_; i++)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_tile[i];
     	error += tmp * tmp;
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
             << std::endl<< std::endl;
 
     error = 0;
-    for(int i = 0; i < M_ * N_; i++)
+    for(int i = 0; i < M_ * P_; i++)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_texture[i];
     	error += tmp * tmp;
@@ -445,7 +445,7 @@ int main(int argc, char **argv)
             << std::endl<< std::endl;
 
    	error = 0;
-    for(int i = 0; i < M_ * N_; i++)
+    for(int i = 0; i < M_ * P_; i++)
     {
     	double tmp = host_array_C_cublas[i] - host_array_C_seq[i];
     	error += tmp * tmp;
