@@ -146,7 +146,7 @@ double cudaMul(float *host_array_A, float *host_array_B, float *host_array_C, in
      
     int maxd = std::max(P_ ,std::max(M_ , N_));
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
-    dim3 dimGrid((M_ + dimBlock.x-1)/(dimBlock.x), (P_ + dimBlock.y-1)/(dimBlock.y));
+    dim3 dimGrid((maxd + dimBlock.x-1)/(dimBlock.x), (maxd + dimBlock.y-1)/(dimBlock.y));
 
     float *device_array_A = NULL;
     res = cudaMalloc((void**)(&device_array_A), M_ * N_ * sizeof(float));CHECK(res)
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 	float *host_array_C_texture = (float*)malloc(M_*P_*sizeof(float));
 	float *host_array_C_cublas = (float*)malloc(M_*P_*sizeof(float));
 
-    int showma = 0, showdif = 0;
+    int showma = 1, showdif = 0;
 	double diff = 0;
     cudaInit(host_array_A, M_, N_);
 	//show(host_array_A, M_, N_);
