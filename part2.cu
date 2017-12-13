@@ -341,10 +341,11 @@ double cublas(float *host_array_A, float *host_array_B, float *host_array_C)
                             &beta, 
                             thrust::raw_pointer_cast(&dvC[0]), ldc);
 
-    double end = rdtsc();
+    //double end = rdtsc();
     if (status != CUBLAS_STATUS_SUCCESS) {
         std::cerr << "!!!! kernel execution error.\n";
     }
+    double end = rdtsc();
     hvC = dvC;
     for(int i = 0; i < M_ * P_; i++) 
     {
